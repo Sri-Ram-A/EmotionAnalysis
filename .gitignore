@@ -211,3 +211,4 @@ __marimo__/
 **/mlflow.db/
 mlflow.db
 /test.txt
+.dvc/config
