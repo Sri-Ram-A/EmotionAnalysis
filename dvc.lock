@@ -41,8 +41,8 @@ stages:
       size: 2223845
     - path: src/train/user_input.py
       hash: md5
-      md5: 830d721c8d7d0984c0ba263140ffe20b
-      size: 2003
+      md5: 1311b789ac0026977f18ff42cb8fa28d
+      size: 3286
     params:
       params.yaml:
         model:
@@ -68,9 +68,9 @@ stages:
     outs:
     - path: src/artifacts/production_model.keras
       hash: md5
-      md5: f9c6067a1bb95bc57ff180c92eae4181
+      md5: 47a6b92a79089421e5790ab16bfbd7d0
       size: 55861
     - path: src/artifacts/trained_model_weights.h5
       hash: md5
-      md5: c4ab65dbc3dbe5722dcc8b7d30f72075
+      md5: 6fba5c710d6417a3a7adb9d5adbfa8c4
       size: 63280
