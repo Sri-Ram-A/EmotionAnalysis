@@ -1,0 +1,10 @@
+from pathlib import Path
+import pandas as pd
+from loguru import logger
+def load_dataset(csv_file_path : Path | str,usecols = ["sentiment","cleaned_text"]):
+    # CSV file must contain 2 columns - [ "sentiment" , "cleaned_text" ]
+    csv_file_path = Path(csv_file_path)
+    df = pd.read_csv(csv_file_path,usecols=usecols)
+    df["cleaned_text"] = df["cleaned_text"].astype(str)
+    logger.success(f"Loaded dataset from {csv_file_path}")
+    return df

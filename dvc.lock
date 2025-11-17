@@ -1,27 +1,21 @@
 schema: '2.0'
 stages:
   preprocess:
-    cmd: python src/preprocess/user_input.py --data 
-      data/Twitter/preprocessed/train.csv --preprocess padding
+    cmd: python src/preprocess/user_input.py --config_path params.yaml
     deps:
-    - path: data/Twitter/preprocessed/train.csv
-      hash: md5
-      md5: 5bf14a9f3e2a247534c25d06ff64f1bf
-      size: 29260749
     - path: src/preprocess/user_input.py
       hash: md5
-      md5: 02413d5c45190ac71c14c8590558ac9b
-      size: 1414
+      md5: afa4f95aa297404a0235ff99fbd796ab
+      size: 1220
     params:
       params.yaml:
         dataset:
           path: data/Twitter/preprocessed/train.csv
           name: Twitter
           total_classes: 4
-          timesteps: 75
         preprocess:
           method: padding
-          parameters:
+          padding:
             padding: pre
             truncating: pre
             maxlen: 75
@@ -34,3 +28,49 @@ stages:
       hash: md5
       md5: 1634d33bb1ff2f1ae09573f19dd012b0
       size: 2223845
+  train:
+    cmd: python src/train/user_input.py --config_path params.yaml
+    deps:
+    - path: src/artifacts/X.pkl
+      hash: md5
+      md5: be3b037f6846d73ce4d4b53d5ee4a540
+      size: 20847165
+    - path: src/artifacts/y.pkl
+      hash: md5
+      md5: 1634d33bb1ff2f1ae09573f19dd012b0
+      size: 2223845
+    - path: src/train/user_input.py
+      hash: md5
+      md5: 830d721c8d7d0984c0ba263140ffe20b
+      size: 2003
+    params:
+      params.yaml:
+        model:
+          architecture: rnn
+          rnn:
+            simple_rnn:
+              units: 32
+              input_shape:
+                timesteps: 75
+                input_nodes: 1
+            dense:
+              units: 32
+              activation: softmax
+          compile:
+            loss: categorical_crossentropy
+            optimizer: adam
+            metrics:
+            - accuracy
+        train:
+          epochs: 2
+          batch_size: 128
+          test_size: 0.2
+    outs:
+    - path: src/artifacts/production_model.keras
+      hash: md5
+      md5: f9c6067a1bb95bc57ff180c92eae4181
+      size: 55861
+    - path: src/artifacts/trained_model_weights.h5
+      hash: md5
+      md5: c4ab65dbc3dbe5722dcc8b7d30f72075
+      size: 63280

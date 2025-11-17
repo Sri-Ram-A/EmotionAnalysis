@@ -19,3 +19,8 @@
     Model summary on training start.
     Saved Keras model in MLflow Model format.
     TensorBoard logs on training end.
+
+3. How to view dvc commits?
+    ```bash
+    dvc studio login
+    ```

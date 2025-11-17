@@ -1,0 +1,33 @@
+dataset:
+  path : data/Twitter/preprocessed/train.csv
+  name : Twitter
+  total_classes : 4
+
+preprocess:
+  method: "padding"
+  padding:
+    padding: "pre"
+    truncating: "pre"
+    maxlen: 75
+
+train:
+  epochs: 2
+  batch_size: 128
+  test_size: 0.2
+
+model:
+  architecture : "rnn"            
+  rnn :
+    simple_rnn:
+      units: 32
+      input_shape:
+        timesteps: 75
+        input_nodes: 1
+    dense:
+      units: 32
+      activation: "softmax"
+  compile :
+    loss : "categorical_crossentropy"
+    optimizer : "adam"
+    metrics : ["accuracy"]
+
