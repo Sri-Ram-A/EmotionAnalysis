@@ -1,3 +1,7 @@
+mlflow:
+  experiment_name: "1-RNN"
+  tracking_uri: "http://localhost:5000"
+  
 dataset:
   path : data/Twitter/preprocessed/train.csv
   name : Twitter

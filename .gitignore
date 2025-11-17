@@ -212,3 +212,5 @@ __marimo__/
 mlflow.db
 /test.txt
 .dvc/config
+mlartifacts/
+secret/
