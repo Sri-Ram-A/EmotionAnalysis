@@ -1,0 +1,36 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/preprocess/user_input.py --data 
+      data/Twitter/preprocessed/train.csv --preprocess padding
+    deps:
+    - path: data/Twitter/preprocessed/train.csv
+      hash: md5
+      md5: 5bf14a9f3e2a247534c25d06ff64f1bf
+      size: 29260749
+    - path: src/preprocess/user_input.py
+      hash: md5
+      md5: 02413d5c45190ac71c14c8590558ac9b
+      size: 1414
+    params:
+      params.yaml:
+        dataset:
+          path: data/Twitter/preprocessed/train.csv
+          name: Twitter
+          total_classes: 4
+          timesteps: 75
+        preprocess:
+          method: padding
+          parameters:
+            padding: pre
+            truncating: pre
+            maxlen: 75
+    outs:
+    - path: src/artifacts/X.pkl
+      hash: md5
+      md5: be3b037f6846d73ce4d4b53d5ee4a540
+      size: 20847165
+    - path: src/artifacts/y.pkl
+      hash: md5
+      md5: 1634d33bb1ff2f1ae09573f19dd012b0
+      size: 2223845
