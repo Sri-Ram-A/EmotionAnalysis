@@ -5,72 +5,61 @@ stages:
     deps:
     - path: src/preprocess/user_input.py
       hash: md5
-      md5: afa4f95aa297404a0235ff99fbd796ab
-      size: 1220
+      md5: 119b1b64b3e4c985c8497587bb4186fb
+      size: 1113
     params:
       params.yaml:
         dataset:
           path: data/Twitter/preprocessed/train.csv
           name: Twitter
-          total_classes: 4
+          nrows: 30000
         preprocess:
-          method: padding
+          method: bow
           padding:
-            padding: pre
-            truncating: pre
+            padding: post
+            truncating: post
             maxlen: 75
     outs:
-    - path: src/artifacts/X.pkl
+    - path: src/artifacts/data.h5
       hash: md5
-      md5: be3b037f6846d73ce4d4b53d5ee4a540
-      size: 20847165
-    - path: src/artifacts/y.pkl
+      md5: ed554551be8f4ccf7e752be710c48313
+      size: 9962048
+    - path: src/artifacts/tokenizer.json
       hash: md5
-      md5: 1634d33bb1ff2f1ae09573f19dd012b0
-      size: 2223845
+      md5: ea19dcb099b41b8527999a501dc04ade
+      size: 1539678
   train:
     cmd: python src/train/user_input.py --config_path params.yaml
     deps:
-    - path: src/artifacts/X.pkl
+    - path: src/artifacts/data.h5
       hash: md5
-      md5: be3b037f6846d73ce4d4b53d5ee4a540
-      size: 20847165
-    - path: src/artifacts/y.pkl
+      md5: bd973528613c06a13be2b0e985d34be9
+      size: 6642048
+    - path: src/artifacts/tokenizer.json
       hash: md5
-      md5: 1634d33bb1ff2f1ae09573f19dd012b0
-      size: 2223845
+      md5: 6704f2047056be38033acd810f541fbc
+      size: 1191954
     - path: src/train/user_input.py
       hash: md5
-      md5: 1311b789ac0026977f18ff42cb8fa28d
-      size: 3286
+      md5: b2abbb2c37b08c1dcec10ea85176f63d
+      size: 4412
     params:
       params.yaml:
+        mlflow:
+          perform: 'false'
+          experiment_name: 2-RNN
+          tracking_uri: http://localhost:5000
         model:
           architecture: rnn
-          rnn:
-            simple_rnn:
-              units: 32
-              input_shape:
-                timesteps: 75
-                input_nodes: 1
-            dense:
-              units: 32
-              activation: softmax
-          compile:
-            loss: categorical_crossentropy
-            optimizer: adam
-            metrics:
-            - accuracy
+          embedding_dimension: 40
         train:
-          epochs: 2
+          perform: 'true'
+          epochs: 10
           batch_size: 128
           test_size: 0.2
     outs:
-    - path: src/artifacts/production_model.keras
+    - path: src/artifacts/production_model
       hash: md5
-      md5: 47a6b92a79089421e5790ab16bfbd7d0
-      size: 55861
-    - path: src/artifacts/trained_model_weights.h5
-      hash: md5
-      md5: 6fba5c710d6417a3a7adb9d5adbfa8c4
-      size: 63280
+      md5: f069666d17a0a05370702cf2476d7d4b.dir
+      size: 3856512
+      nfiles: 4

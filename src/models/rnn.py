@@ -10,48 +10,31 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from keras.models import Sequential
-from keras.layers import SimpleRNN, Dense, Embedding, LSTM, GRU 
+from keras.layers import SimpleRNN, Dense, Embedding,Input
 from loguru import logger
 
-def build_model(config):
-    # Extract parameters from config (matching your YAML structure)
-    model_parameters = config.model.rnn
-    compile_parameters = config.model.compile
-    dataset_config = config.dataset
-    
-    # Build model
+def build_model(vocabulary_size , embedding_dimension , timesteps , total_classes):
+    # ---- Model ----
     model = Sequential()
-    
-    # RNN Layer
-    model.add(SimpleRNN(
-        units=model_parameters.simple_rnn.units, 
-        input_shape=(
-            model_parameters.simple_rnn.input_shape.timesteps, 
-            model_parameters.simple_rnn.input_shape.input_nodes
-        ),
-        return_sequences=False
+    model.add(Input(shape=(timesteps,), dtype='int32'))
+    model.add(Embedding(
+        input_dim = vocabulary_size,
+        output_dim = embedding_dimension,
+        input_length = timesteps,
     ))
-    
-    # Dense Layer (using the units from dense section)
-    model.add(Dense(
-        units=model_parameters.dense.units,
-        activation=model_parameters.dense.activation
-    ))
-    
-    # Output Layer (using total_classes from dataset)
-    model.add(Dense(
-        units=dataset_config.total_classes,
-        activation="softmax"
-    ))
-    
-    # Compile model
+    model.add(SimpleRNN(128, return_sequences=False))
+    model.add(Dense(64, activation="relu"))
+    model.add(Dense(32, activation="relu"))
+    model.add(Dense(16, activation="relu"))
+    model.add(Dense(8, activation="relu"))
+    model.add(Dense(4, activation="relu"))
+    model.add(Dense(total_classes, activation="softmax"))
     model.compile(
-        loss=compile_parameters.loss,
-        optimizer=compile_parameters.optimizer,
-        metrics=[compile_parameters.metrics] if isinstance(compile_parameters.metrics, str) else list(compile_parameters.metrics)
+        loss="categorical_crossentropy",
+        optimizer="adam",
+        metrics=["accuracy"]
     )
-    
-    logger.debug("Model built successfully:")
+    logger.success("Model built successfully")
     logger.debug(model.summary())
     
     return model

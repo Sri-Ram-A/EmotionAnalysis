@@ -1,37 +1,26 @@
 mlflow:
-  experiment_name: "1-RNN"
+  perform: "false"
+  experiment_name: "2-RNN"
   tracking_uri: "http://localhost:5000"
   
 dataset:
   path : data/Twitter/preprocessed/train.csv
   name : Twitter
-  total_classes : 4
+  nrows : 30000
 
 preprocess:
-  method: "padding"
+  method: "bow"       
   padding:
-    padding: "pre"
-    truncating: "pre"
-    maxlen: 75
+    padding: "post"
+    truncating: "post"
+    maxlen: 75            # since average words is 75
 
 train:
-  epochs: 2
+  perform: "true"
+  epochs: 30
   batch_size: 128
   test_size: 0.2
 
 model:
-  architecture : "rnn"            
-  rnn :
-    simple_rnn:
-      units: 32
-      input_shape:
-        timesteps: 75
-        input_nodes: 1
-    dense:
-      units: 32
-      activation: "softmax"
-  compile :
-    loss : "categorical_crossentropy"
-    optimizer : "adam"
-    metrics : ["accuracy"]
-
+  architecture : "rnn"
+  embedding_dimension : 20     

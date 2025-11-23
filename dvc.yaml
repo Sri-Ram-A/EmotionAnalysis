@@ -7,18 +7,19 @@ stages:
       - dataset
       - preprocess
     outs:
-      - src/artifacts/X.pkl
-      - src/artifacts/y.pkl
-
+      - src/artifacts/data.h5
+      - src/artifacts/tokenizer.json
   train:
     cmd: python src/train/user_input.py --config_path params.yaml
     deps:
       - src/train/user_input.py
-      - src/artifacts/X.pkl
-      - src/artifacts/y.pkl
+      - src/artifacts/data.h5
+      - src/artifacts/tokenizer.json
     params:
+      - mlflow
       - train
       - model
     outs:
-      - src/artifacts/trained_model_weights.h5
-      - src/artifacts/production_model.keras
+      # - src/artifacts/trained_model_weights.h5
+      # - src/artifacts/production_model.keras
+      - src/artifacts/production_model
