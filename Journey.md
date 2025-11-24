@@ -72,10 +72,13 @@
         saved_model.pb
     ```
 
-
     If your structure is missing version number directory (1/), TF-Serving won’t start.
     ```bash
     docker run -p 8501:8501   --name tfserving_classifier   --mount type=bind,source=/home/srirama/sr_proj/EmotionAnalysis/src/artifacts/production_model,target=/models/rnn_classifier   -e MODEL_NAME=rnn_classifier   -t tensorflow/serving:latest-gpu
+    ```
+    For running container from next time onwards:
+    ```bash
+        docker start tfserving_classifier
     ```
 
     

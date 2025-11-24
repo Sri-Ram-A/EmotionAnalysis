@@ -107,7 +107,7 @@ def main():
     # logger.info(f"Complete model saved to: {complete_model_path}")
     
     # Save in SavedModel format
-    saved_model_dir = ARTIFACTS_DIR / "production_model"
+    saved_model_dir = ARTIFACTS_DIR / "production_model" / "1"
     model.export(saved_model_dir)
     logger.info(f"SavedModel saved to: {saved_model_dir}")
 

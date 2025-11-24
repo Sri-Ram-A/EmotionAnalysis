@@ -10,7 +10,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 from keras.models import Sequential
-from keras.layers import SimpleRNN, Dense, Embedding,Input
+from keras.layers import SimpleRNN, Dense, Embedding,Input,Dropout
 from loguru import logger
 
 def build_model(vocabulary_size , embedding_dimension , timesteps , total_classes):
@@ -22,9 +22,12 @@ def build_model(vocabulary_size , embedding_dimension , timesteps , total_classe
         output_dim = embedding_dimension,
         input_length = timesteps,
     ))
-    model.add(SimpleRNN(128, return_sequences=False))
+    model.add(SimpleRNN(256, return_sequences=False))
+    model.add(Dense(128, activation="relu"))
+    model.add(Dropout(0.3))
     model.add(Dense(64, activation="relu"))
     model.add(Dense(32, activation="relu"))
+    model.add(Dropout(0.3))
     model.add(Dense(16, activation="relu"))
     model.add(Dense(8, activation="relu"))
     model.add(Dense(4, activation="relu"))

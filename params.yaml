@@ -1,26 +1,30 @@
-mlflow:
-  perform: "false"
-  experiment_name: "2-RNN"
-  tracking_uri: "http://localhost:5000"
-  
 dataset:
-  path : data/Twitter/preprocessed/train.csv
+  raw_path : data/Twitter/raw/train.csv
+  preprocessed_path : src/artifacts/data/preprocessed/train.csv
   name : Twitter
-  nrows : 30000
+  nrows_preprocess : None  # None or int
+  text_column_index : 3 # Index begins from 0
+  label_column_index : 2
 
-preprocess:
-  method: "bow"       
+featurize:
+  method: "padding"       
   padding:
     padding: "post"
     truncating: "post"
     maxlen: 75            # since average words is 75
 
+mlflow:
+  perform: "false"
+  experiment_name: "2-RNN"
+  tracking_uri: "http://localhost:5000"
+
 train:
   perform: "true"
+  nrows_train : None  # None or int
   epochs: 30
   batch_size: 128
   test_size: 0.2
 
 model:
   architecture : "rnn"
-  embedding_dimension : 20     
+  embedding_dimension : 30

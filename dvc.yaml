@@ -1,14 +1,28 @@
 stages:
+
   preprocess:
-    cmd: python src/preprocess/user_input.py --config_path params.yaml
+    cmd: python src/data/preprocess.py --config_path params.yaml
     deps:
-      - src/preprocess/user_input.py
+      - src/data/preprocess.py
+      - data/Twitter/raw/train.csv
+      - src/data/slangs.txt
     params:
       - dataset
-      - preprocess
+    outs:
+      - src/artifacts/data/preprocessed/train.csv
+
+  featurize:
+    cmd: python src/data/user_input.py --config_path params.yaml
+    deps:
+      - src/data/user_input.py
+    params:
+      - dataset
+      - featurize
+      - train
     outs:
       - src/artifacts/data.h5
       - src/artifacts/tokenizer.json
+
   train:
     cmd: python src/train/user_input.py --config_path params.yaml
     deps:
@@ -22,4 +36,9 @@ stages:
     outs:
       # - src/artifacts/trained_model_weights.h5
       # - src/artifacts/production_model.keras
-      - src/artifacts/production_model
+      - src/artifacts/production_model/1
+
+  # serve:
+  #   cmd: docker start tfserving_classifier
+  #   deps:
+  #   - src/artifacts/production_model
