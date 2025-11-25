@@ -81,5 +81,41 @@
         docker start tfserving_classifier
     ```
 
-    
+6. TFX in Render
+    ### This method bakes the model INTO the Docker image itself.
+        https://www.tensorflow.org/tfx/serving/docker#creating_your_own_serving_image
+    ```bash
+    # 1. Run base serving container
+    docker run -d --name serving_base tensorflow/serving
+    # 2. Copy SavedModel into container
+    docker cp /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/production_model \
+    serving_base:/models/rnn_classifier
+    # 3. Commit container → create custom serving image
+    docker commit --change "ENV MODEL_NAME rnn_classifier" \
+    serving_base rnn_classifier_serving:latest
+    # 4. Stop and remove temporary container
+    docker kill serving_base
+    docker rm serving_base
+    # 5. Run your custom serving image
+    docker run -p 8501:8501 --name tfserving_classifier_inbuilt \
+    -t rnn_classifier_serving:latest
+    # 6. Start next time
+    docker start tfserving_classifier
+    ```
+    ### Push this model embedded docker image to Docker Hub
+    Didnt Understand this much
+        https://docs.docker.com/get-started/introduction/build-and-push-first-image/
+    Skip to **Push Docker Image to Docker Hub**
+        https://medium.com/@komalminhas.96/a-step-by-step-guide-to-build-and-push-your-own-docker-images-to-dockerhub-709963d4a8bc
+    ```bash
+    docker tag rnn_classifier_serving:latest starmagiciansr/mlops-tfx:v1.0
+    docker push starmagiciansr/mlops-tfx:v1.0
+    ```
+    Will come back to this later:
+        How to deploy multiple models in TFX:
+            - https://medium.com/retina-ai-health-inc/tensorflow-serving-of-multiple-ml-models-simultaneously-to-a-rest-api-python-client-cd60ac6f71aa
+            - https://www.tensorflow.org/tfx/serving/serving_config#reloading_model_server_configuration
 
+        
+
+7. 
