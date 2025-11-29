@@ -1,3 +1,4 @@
+
 1. How to configure the DVC storage?
     - https://dvc.org/doc/install/linux
     - https://dvc.org/doc/start
@@ -118,4 +119,11 @@
 
         
 
-7. 
+7. MLFlow Registry for evaluation
+    How to Load Model for evaluation?
+    - https://mlflow.org/docs/latest/ml/model-registry/tutorial/#load-a-registered-model
+    # Load the model from the Model Registry
+    model_uri = f"models:/{model_name}/{model_version}"
+    model_uri = f"models:/{model_name}@{model_version_alias}"
+    model = mlflow.keras.load_model(f"runs:/{latest_run_id}/model") # Chatgpt
+

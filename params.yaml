@@ -14,17 +14,17 @@ featurize:
     maxlen: 75            # since average words is 75
 
 mlflow:
-  perform: "false"
-  experiment_name: "2-RNN"
+  perform: "true"
+  experiment_name: "1-REG"
   tracking_uri: "http://localhost:5000"
 
 train:
   perform: "true"
   nrows_train : None  # None or int
-  epochs: 30
-  batch_size: 128
-  test_size: 0.2
+  epochs: 1
+  batch_size: 120
+  test_size: 0.4
 
 model:
   architecture : "rnn"
-  embedding_dimension : 30
+  embedding_dimension : 20

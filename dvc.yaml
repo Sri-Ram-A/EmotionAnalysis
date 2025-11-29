@@ -18,7 +18,6 @@ stages:
     params:
       - dataset
       - featurize
-      - train
     outs:
       - src/artifacts/data.h5
       - src/artifacts/tokenizer.json
@@ -34,11 +33,11 @@ stages:
       - train
       - model
     outs:
-      # - src/artifacts/trained_model_weights.h5
-      # - src/artifacts/production_model.keras
-      - src/artifacts/production_model/1
+      - src/artifacts/latest_model/
 
-  # serve:
-  #   cmd: docker start tfserving_classifier
+  # evaluate:
+  #   cmd: python src/evaluate/validate.py --config_path params.yaml
   #   deps:
-  #   - src/artifacts/production_model
+  #     - src/evaluate/evaluate.py
+  #     - src/artifacts/latest_model.yaml
+  #     - src/artifacts/production_model/1

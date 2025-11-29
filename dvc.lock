@@ -38,32 +38,32 @@ stages:
       size: 23073060
     - path: src/artifacts/tokenizer.json
       hash: md5
-      md5: eb318631aee632a5680e109c048bb4f3
+      md5: 33088eccbd85031ee5ffcfe1b32192de
       size: 2526060
     - path: src/train/user_input.py
       hash: md5
-      md5: 181e8ad00832c8fcfd13facbd8881af7
-      size: 4418
+      md5: 0c4c57502c4012cd522791b63440b89c
+      size: 4627
     params:
       params.yaml:
         mlflow:
-          perform: 'false'
-          experiment_name: 2-RNN
+          perform: 'true'
+          experiment_name: 1-REG
           tracking_uri: http://localhost:5000
         model:
           architecture: rnn
-          embedding_dimension: 30
+          embedding_dimension: 20
         train:
           perform: 'true'
           nrows_train: None
-          epochs: 30
-          batch_size: 128
-          test_size: 0.2
+          epochs: 1
+          batch_size: 120
+          test_size: 0.4
     outs:
-    - path: src/artifacts/production_model/1
+    - path: src/artifacts/latest_model/
       hash: md5
-      md5: 5a98f23fbaf15e7cf8886254caa1e945.dir
-      size: 6458156
+      md5: 1d5dc6152b83d502bd0e53a0d7cdf149.dir
+      size: 4648391
       nfiles: 4
   data:
     cmd: python src/data/user_input.py --config_path params.yaml
@@ -118,7 +118,7 @@ stages:
         train:
           perform: 'true'
           nrows_train: None
-          epochs: 30
+          epochs: 3
           batch_size: 128
           test_size: 0.2
     outs:
@@ -128,5 +128,5 @@ stages:
       size: 23073060
     - path: src/artifacts/tokenizer.json
       hash: md5
-      md5: eb318631aee632a5680e109c048bb4f3
+      md5: 33088eccbd85031ee5ffcfe1b32192de
       size: 2526060
