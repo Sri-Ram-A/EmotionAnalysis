@@ -16,7 +16,8 @@ featurize:
 mlflow:
   perform: "true"
   experiment_name: "1-REG"
-  tracking_uri: "http://localhost:5000"
+  tracking_uri: "http://localhost:5000" # Both are waste
+  # tracking_uri: "sqlite:///mlflow.db" # 
 
 train:
   perform: "true"
@@ -27,4 +28,4 @@ train:
 
 model:
   architecture : "rnn"
-  embedding_dimension : 20
+  embedding_dimension : 40

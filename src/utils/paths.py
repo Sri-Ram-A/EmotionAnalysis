@@ -18,7 +18,6 @@ class ProjectPaths:
     TOKENIZER_JSON_FILE: Path = ARTIFACTS_DIR / "tokenizer.json"
     
     # Model files
-    SAVED_MODEL_DIR: Path = RECENT_MODEL_DIR / "model"
     CONFIG_JSON_FILE: Path = RECENT_MODEL_DIR / "config.json"
     
     # Configuration

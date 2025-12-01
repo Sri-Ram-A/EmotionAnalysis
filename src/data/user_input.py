@@ -7,24 +7,14 @@ print(SRC_DIR)
 from omegaconf import OmegaConf
 from argparse import ArgumentParser
 from src.utils import helper
+from src.utils.paths import paths
 import featurize , ingestion
 
 ARTIFACTS_DIR = BASE_DIR / "src" / "artifacts"
 ARTIFACTS_DIR.mkdir(exist_ok=True)
 
-def get_arguments():
-    parser = ArgumentParser(description="Run preprocessing pipeline")
-    parser.add_argument( # Config file
-        "--config_path",
-        type=str,
-        default="params.yaml",
-        help="Path to configuration file"
-    )
-    return parser.parse_args()
-        
 def main():
-    args = get_arguments()
-    config = OmegaConf.load(BASE_DIR / args.config_path)
+    config = OmegaConf.load(paths.USER_CONFIG)
     df = ingestion.load_dataset(config)
     corpus,labels = df["cleaned_text"] , df["sentiment"]
     X, y , tokenizer = featurize.fit(corpus,labels,config.featurize)

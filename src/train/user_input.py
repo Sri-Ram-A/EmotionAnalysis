@@ -12,22 +12,11 @@ from src.utils import helper
 from src.utils.paths import paths
 
 MODEL_METHODS = {
-    "rnn": models.rnn
+    "rnn": ("1" , models.rnn)
 }
 
-def get_arguments():
-    parser = ArgumentParser(description="Run training pipeline")
-    parser.add_argument(
-        "--config_path",
-        type=str,
-        default="params.yaml",
-        help="Path to configuration file"
-    )
-    return parser.parse_args()
-
 def main():
-    args = get_arguments()
-    config = OmegaConf.load(paths.BASE_DIR / args.config_path)
+    config = OmegaConf.load(paths.USER_CONFIG)
     run_number = helper.get_next_run_number(config.mlflow.experiment_name, config.mlflow.tracking_uri)
     MODEL_NAME = f"{config.dataset.name.lower()}_{config.model.architecture.lower()}_v{run_number}"
     MLFLOW_PERFORM = config.mlflow.perform.lower()
@@ -66,7 +55,7 @@ def main():
     logger.info(f"Train size : {X_train.shape[0]} | Val size : {X_val.shape[0]}")
     
     # Train Model
-    model = MODEL_METHODS[config.model.architecture].build_model(
+    model = MODEL_METHODS[config.model.architecture][1].build_model(
         vocabulary_size, embedding_dimension, timesteps, total_classes
     )
     history = model.fit(
@@ -78,12 +67,12 @@ def main():
     logger.success(f"Trained model for {config.train.epochs} epochs")
 
     # Save model in SavedModel format
-    model.export(paths.SAVED_MODEL_DIR)
-    logger.info(f"Model saved to: {paths.SAVED_MODEL_DIR}")
+    prod_num = MODEL_METHODS[config.model.architecture][0]
+    model.export(paths.RECENT_MODEL_DIR / prod_num)
+    logger.info(f"Model saved to: {paths.RECENT_MODEL_DIR / prod_num}")
     
     # End MLFlow run if enabled
     if MLFLOW_PERFORM == "true":
-        
         mlflow.end_run()
         logger.info(f"MLFlow run completed - Run Name: {RUN_NAME}")
 

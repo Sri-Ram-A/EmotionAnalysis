@@ -8,22 +8,16 @@ from tqdm import tqdm
 from loguru import logger
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(BASE_DIR))
-
+from src.utils.paths import paths
 # Enable tqdm for pandas
 tqdm.pandas()
-
-def get_args():
-    parser = ArgumentParser()
-    parser.add_argument("--config_path", type=str, default="params.yaml")
-    return parser.parse_args()
 
 def print_info(msg, color="blue"):
     colors = {"blue": "\033[94m", "green": "\033[92m", "reset": "\033[0m"}
     print(f"{colors.get(color, '')}{msg}{colors['reset']}")
 
 def main():
-    args = get_args()
-    config = OmegaConf.load(BASE_DIR / args.config_path)
+    config = OmegaConf.load(paths.USER_CONFIG)
 
     dataset_path = Path(config.dataset.raw_path)
     text_col_idx = config.dataset.text_column_index

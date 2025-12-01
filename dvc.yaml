@@ -1,7 +1,7 @@
 stages:
 
   preprocess:
-    cmd: python src/data/preprocess.py --config_path params.yaml
+    cmd: python src/data/preprocess.py 
     deps:
       - src/data/preprocess.py
       - data/Twitter/raw/train.csv
@@ -12,7 +12,7 @@ stages:
       - src/artifacts/data/preprocessed/train.csv
 
   featurize:
-    cmd: python src/data/user_input.py --config_path params.yaml
+    cmd: python src/data/user_input.py 
     deps:
       - src/data/user_input.py
     params:
@@ -23,7 +23,7 @@ stages:
       - src/artifacts/tokenizer.json
 
   train:
-    cmd: python src/train/user_input.py --config_path params.yaml
+    cmd: python src/train/user_input.py 
     deps:
       - src/train/user_input.py
       - src/artifacts/data.h5
@@ -35,9 +35,13 @@ stages:
     outs:
       - src/artifacts/recent_model/
 
-  # evaluate:
-  #   cmd: python src/evaluate/validate.py --config_path params.yaml
-  #   deps:
-  #     - src/evaluate/evaluate.py
-  #     - src/artifacts/latest_model.yaml
-  #     - src/artifacts/production_model/1
+  stage:
+    cmd: python src/registry/stage.py 
+    deps:
+      - src/registry/stage.py
+    
+  promote:
+    cmd: python src/registry/promote.py 
+    deps:
+      - src/registry/promote.py
+    
