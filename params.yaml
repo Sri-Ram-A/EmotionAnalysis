@@ -22,7 +22,7 @@ train:
   perform: "true"
   nrows_train : None  # None or int
   epochs: 1
-  batch_size: 120
+  batch_size: 400
   test_size: 0.4
 
 model:

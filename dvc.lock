@@ -42,8 +42,8 @@ stages:
       size: 2526060
     - path: src/train/user_input.py
       hash: md5
-      md5: 0c4c57502c4012cd522791b63440b89c
-      size: 4627
+      md5: a10fc4edc96bcb50704c23212a59c424
+      size: 3205
     params:
       params.yaml:
         mlflow:
@@ -57,13 +57,13 @@ stages:
           perform: 'true'
           nrows_train: None
           epochs: 1
-          batch_size: 120
+          batch_size: 400
           test_size: 0.4
     outs:
-    - path: src/artifacts/latest_model/
+    - path: src/artifacts/recent_model/
       hash: md5
-      md5: 1d5dc6152b83d502bd0e53a0d7cdf149.dir
-      size: 4648391
+      md5: 57344a0524ac23b370249f8a5fffc765.dir
+      size: 4648328
       nfiles: 4
   data:
     cmd: python src/data/user_input.py --config_path params.yaml
@@ -115,12 +115,6 @@ stages:
             padding: post
             truncating: post
             maxlen: 75
-        train:
-          perform: 'true'
-          nrows_train: None
-          epochs: 3
-          batch_size: 128
-          test_size: 0.2
     outs:
     - path: src/artifacts/data.h5
       hash: md5

@@ -24,6 +24,7 @@ def load_h5(file_path):
         X = X_ds[:]
         y = y_ds[:]
     logger.info(f"Dataset loaded from {file_path}")
+    logger.info(f"Loaded data -> X: shape={X.shape}, dtype={X.dtype} ; y: shape={y.shape}, dtype={y.dtype}")
     return X, y
 
 def save_tokenizer(tokenizer, file_path):
@@ -70,3 +71,17 @@ def get_model_signature(input_shape, output_shape):
     ])
 
     return ModelSignature(inputs=input_schema, outputs=output_schema)
+
+def get_next_run_number(experiment_name, tracking_uri):
+    """Get next run number for the experiment"""
+    try:
+        from mlflow.tracking import MlflowClient
+        client = MlflowClient(tracking_uri)
+        experiment = client.get_experiment_by_name(experiment_name)
+        
+        if experiment:
+            runs = client.search_runs(experiment_ids=[experiment.experiment_id])
+            return len(runs)+1
+    except:
+        pass
+    return 1

@@ -33,7 +33,7 @@ stages:
       - train
       - model
     outs:
-      - src/artifacts/latest_model/
+      - src/artifacts/recent_model/
 
   # evaluate:
   #   cmd: python src/evaluate/validate.py --config_path params.yaml

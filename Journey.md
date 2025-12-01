@@ -125,5 +125,6 @@
     # Load the model from the Model Registry
     model_uri = f"models:/{model_name}/{model_version}"
     model_uri = f"models:/{model_name}@{model_version_alias}"
-    model = mlflow.keras.load_model(f"runs:/{latest_run_id}/model") # Chatgpt
-
+    model = mlflow.keras.load_model(f"runs:/{latest_run_id}/model") # Chatgpt (not working for me)
+    - I found a different method to load the model
+    - https://mlflow.org/docs/latest/ml/model-registry/workflow/
