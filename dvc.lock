@@ -42,17 +42,17 @@ stages:
       size: 2526060
     - path: src/train/user_input.py
       hash: md5
-      md5: a10fc4edc96bcb50704c23212a59c424
-      size: 3205
+      md5: 1f853b6037466be26981da035fa79a55
+      size: 4010
     params:
       params.yaml:
         mlflow:
           perform: 'true'
           experiment_name: 1-REG
-          tracking_uri: http://localhost:5000
+          tracking_uri: sqlite:///mlflow.db
         model:
           architecture: rnn
-          embedding_dimension: 20
+          embedding_dimension: 40
         train:
           perform: 'true'
           nrows_train: None
@@ -62,8 +62,8 @@ stages:
     outs:
     - path: src/artifacts/recent_model/
       hash: md5
-      md5: 57344a0524ac23b370249f8a5fffc765.dir
-      size: 4648328
+      md5: 0cadee98be7e0b3719c9bd0e9ec3b1c6.dir
+      size: 8267856
       nfiles: 4
   data:
     cmd: python src/data/user_input.py --config_path params.yaml
