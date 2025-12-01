@@ -183,10 +183,55 @@ docker push starmagiciansr/mlops-tfx:v1.0
 Will come back to this later:
 
 * How to deploy multiple models in TFX:
-
+  * [https://www.scaler.com/topics/tensorflow/tensorflow-serving/](https://www.scaler.com/topics/tensorflow/tensorflow-serving/)
   * [https://medium.com/retina-ai-health-inc/tensorflow-serving-of-multiple-ml-models-simultaneously-to-a-rest-api-python-client-cd60ac6f71aa](https://medium.com/retina-ai-health-inc/tensorflow-serving-of-multiple-ml-models-simultaneously-to-a-rest-api-python-client-cd60ac6f71aa)
   * [https://www.tensorflow.org/tfx/serving/serving_config#reloading_model_server_configuration](https://www.tensorflow.org/tfx/serving/serving_config#reloading_model_server_configuration)
+```bash
+docker run -p 8501:8501 \
+  --name tf-serving-multimodel \
+  --mount type=bind,source=/home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent_model/rnn,target=/models/rnn \
+  --mount type=bind,source=/home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent_model/lstm,target=/models/lstm \
+  --mount type=bind,source=/home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent_model/gru,target=/models/gru \
+  --mount type=bind,source=/home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent_model/model_config.config,target=/models/model_config.config \
+  -t tensorflow/serving:latest-gpu \
+  --model_config_file=/models/model_config.config
 
+```
+```bash
+  # 1. Run a temporary serving container
+  docker run -d --name serving_multi tensorflow/serving:latest-gpu
+
+  # 2. Copy your models and config into the container
+  docker cp /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent_model/rnn \
+  serving_multi:/models/rnn
+
+  docker cp /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent_model/lstm \
+  serving_multi:/models/lstm
+
+  docker cp /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent_model/gru \
+  serving_multi:/models/gru
+
+  docker cp /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent_model/model_config.config \
+  serving_multi:/models/model_config.config
+
+  # 3. Commit the container into a reusable image
+  docker commit \
+    --change "ENV MODEL_CONFIG_FILE /models/model_config.config" \
+    serving_multi tfserving-multimodel:latest
+
+  # 4. Delete temporary container
+  docker kill serving_multi
+  docker rm serving_multi
+
+  # 5. Run your custom TF Serving image
+  docker run -p 8501:8501 \
+    --name tfserving_multimodel \
+    -t tfserving-multimodel:latest \
+    --model_config_file=/models/model_config.config
+
+  # 6. Next time start it
+  docker start tfserving_multimodel
+```
 ---
 
 ## 7. MLFlow Registry for evaluation

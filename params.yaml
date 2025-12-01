@@ -29,3 +29,6 @@ train:
 model:
   architecture : "rnn"
   embedding_dimension : 40
+
+registry:
+  debug: "true"

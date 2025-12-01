@@ -18,9 +18,10 @@ MODEL_METHODS = {
 def main():
     config = OmegaConf.load(paths.USER_CONFIG)
     run_number = helper.get_next_run_number(config.mlflow.experiment_name, config.mlflow.tracking_uri)
-    MODEL_NAME = f"{config.dataset.name.lower()}_{config.model.architecture.lower()}_v{run_number}"
+    MODEL_ARCHITECTURE_NAME = config.model.architecture.lower()
+    MODEL_NAME = f"{config.dataset.name.lower()}_{MODEL_ARCHITECTURE_NAME}_v{run_number}"
     MLFLOW_PERFORM = config.mlflow.perform.lower()
-    RUN_NAME = f"{config.model.architecture.lower()}_{run_number}"
+    RUN_NAME = f"{MODEL_ARCHITECTURE_NAME}_{run_number}"
         
     if config.train.perform.lower() == "false":
         logger.warning("Skipping Training Pipeline")
@@ -68,8 +69,8 @@ def main():
 
     # Save model in SavedModel format
     prod_num = MODEL_METHODS[config.model.architecture][0]
-    model.export(paths.RECENT_MODEL_DIR / prod_num)
-    logger.info(f"Model saved to: {paths.RECENT_MODEL_DIR / prod_num}")
+    model.export(paths.RECENT_MODEL_DIR / MODEL_ARCHITECTURE_NAME / prod_num)
+    logger.info(f"Model saved to: {paths.RECENT_MODEL_DIR / MODEL_ARCHITECTURE_NAME / prod_num}")
     
     # End MLFlow run if enabled
     if MLFLOW_PERFORM == "true":
