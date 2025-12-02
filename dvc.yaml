@@ -33,15 +33,19 @@ stages:
       - train
       - model
     outs:
-      - src/artifacts/recent_model/
-
+      - src/artifacts/recent_model/rnn
+      - src/artifacts/recent_model/lstm
+      - src/artifacts/recent_model/gru
+      - src/artifacts/recent_model/model_config.config
   stage:
     cmd: python src/registry/stage.py 
     deps:
       - src/registry/stage.py
+      - src/artifacts/recent_model/
     
   promote:
     cmd: python src/registry/promote.py 
     deps:
-      - src/registry/promote.py
+      - src/registry/stage.py
+      - src/artifacts/recent_model/
     

@@ -214,3 +214,5 @@ mlflow.db
 .dvc/config
 mlartifacts/
 secret/
+recent_model/
+.env

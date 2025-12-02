@@ -256,4 +256,6 @@ Found a different method to load the model:
 ---
 
 ## 8. Deploy to Render using API
+  - Used to automate docker image deploy : 
+    https://render.com/docs/deploying-an-image
 

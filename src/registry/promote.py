@@ -5,59 +5,103 @@ from omegaconf import OmegaConf
 from mlflow.tracking import MlflowClient
 from mlflow.entities.model_registry import ModelVersion
 from mlflow.entities import Run
-BASE_DIR = Path(__file__).resolve().parents[2]
 import sys
+
+BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(BASE_DIR))
 from src.utils.paths import paths
-from helper import print_yaml , run_cmd
-
-config = OmegaConf.load(paths.USER_CONFIG)
-TRACKING_URI = config.mlflow.tracking_uri
-EXPERIMENT_NAME = config.mlflow.experiment_name
-STAGED_ALIAS = "staged"
-PRODUCTION_ALIAS = "inprod"
-PROMOTE_TO_PROD = False
-mlflow.set_tracking_uri(TRACKING_URI)
-client = MlflowClient()
-try:
-    staged:ModelVersion = client.get_model_version_by_alias(EXPERIMENT_NAME,STAGED_ALIAS)
-    logger.info("Staged:ModelVersion Info - Staged Model")
-    print_yaml(staged.__dict__)
-except Exception:
-    logger.error("No staged model exists - Run previous pipelines and save model")
-    sys.exit(1)
-staged_run = client.get_run(str(staged.run_id))
-staged_acc = staged_run.data.metrics.get("val_accuracy",-float("inf"))
-logger.info("Staged:ModelVersion Info - Staged Model Run Details")
-print_yaml(staged_run.__dict__)
-
-# Try get production model
-try:
-    prod:ModelVersion = client.get_model_version_by_alias(EXPERIMENT_NAME, PRODUCTION_ALIAS)
-    logger.info("Production:ModelVersion Info - Production Model")
-    print_yaml(prod.__dict__)
-    prod_run:Run = client.get_run(str(prod.run_id))
-    prod_acc= prod_run.data.metrics.get("val_accuracy")
-    logger.info("Staged:ModelVersion Info - Staged Model Run Details")
-    print_yaml(prod_run.__dict__)
+import helper
+import dockerize
+from dotenv import load_dotenv
+import os
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / ".env")
+DEPLOY_HOOK = os.getenv("DEPLOY_HOOK")
+def main():
+    config = OmegaConf.load(paths.USER_CONFIG)
+    TRACKING_URI = config.mlflow.tracking_uri
+    EXPERIMENT_NAME = config.mlflow.experiment_name
+    STAGED_ALIAS = "staged"
+    PRODUCTION_ALIAS = "inprod"
+    PROMOTE_TO_PROD = False
+    mlflow.set_tracking_uri(TRACKING_URI)
+    client = MlflowClient()
     
-    logger.info(f"staged acc={staged_acc} vs prod acc={prod_acc}")
-    if staged_acc > prod_acc:
+    # Verify the model registry exists
+    try:
+        client.get_registered_model(EXPERIMENT_NAME)
+        logger.info(f"Found registered model: '{EXPERIMENT_NAME}'")
+    except Exception as e:
+        logger.error(f"Registered model '{EXPERIMENT_NAME}' not found: {e}")
+        sys.exit(1)
+    
+    # Try to get staged model
+    try:
+        staged: ModelVersion = client.get_model_version_by_alias(EXPERIMENT_NAME, STAGED_ALIAS)
+        logger.info(f"Staged Model: version={staged.version}, run_id={staged.run_id}, status={staged.status}")
+    except Exception as e:
+        logger.error(f"No staged model exists - Run previous pipelines and save model. Error: {e}")
+        sys.exit(1)
+    
+    # Get staged model run details
+    try:
+        staged_run = client.get_run(str(staged.run_id))
+        staged_acc = staged_run.data.metrics.get("val_accuracy") or staged_run.data.metrics.get("accuracy") or -float("inf")
+        logger.info(f"Staged Model - Run: {staged.run_id}, Accuracy: {staged_acc}")
+    except Exception as e:
+        logger.error(f"Failed to get staged model run details: {e}")
+        sys.exit(1)
+
+    # Try get production model
+    try:
+        prod: ModelVersion = client.get_model_version_by_alias(EXPERIMENT_NAME, PRODUCTION_ALIAS)
+        logger.info(f"Production Model: version={prod.version}, run_id={prod.run_id}, status={prod.status}")
+        prod_run: Run = client.get_run(str(prod.run_id))
+        prod_acc = prod_run.data.metrics.get("val_accuracy") or prod_run.data.metrics.get("accuracy") or -float("inf")
+        logger.info(f"Production Model - Run: {prod.run_id}, Accuracy: {prod_acc}")
+        
+        logger.info(f"Comparing: staged_acc={staged_acc} vs prod_acc={prod_acc}")
+        if staged_acc > prod_acc:
+            PROMOTE_TO_PROD = True
+            logger.info("Staged model is better than production. Hence will promote.")
+        else:
+            logger.info("Production model already superior or equal. No changes made.")
+    except Exception as e:
+        logger.warning(f"No production model found: {e}. Promoting staged to production.")
         PROMOTE_TO_PROD = True
+
+    if PROMOTE_TO_PROD:
+        try:
+            REPO_NAME = "starmagiciansr/mlops-tfx"
+            VERSION_NO = f"{(int(staged.version)/10)+1}"
+            FINAL_IMAGE = f"tfserving/multimodel:v{VERSION_NO}"
+
+            logger.info("Building TF Serving Custom multi-model Docker Image 🐳")
+            dockerize.build_custom_tfx_image(FINAL_IMAGE)
+
+            # Push to DockerHub
+            helper.push_to_dockerhub(FINAL_IMAGE, VERSION_NO, REPO_NAME)
+
+            # 🔥 Trigger Render Deployment
+            full_image_uri = f"docker.io/{REPO_NAME}:v{VERSION_NO}"
+            logger.info(f"Triggering Render deployment for image: {full_image_uri}")
+            helper.deploy_to_render(full_image_uri)
+
+            # Set production alias
+            client.set_registered_model_alias(EXPERIMENT_NAME, PRODUCTION_ALIAS, staged.version)
+            logger.success(f"Promoted version = {staged.version} → PRODUCTION")
+
+            # Remove staged alias
+            client.delete_registered_model_alias(EXPERIMENT_NAME, STAGED_ALIAS)
+            logger.success(f"Removed staged alias (version {staged.version} is now in production)")
+
+        except Exception as e:
+            logger.error(f"Failed to promote to production: {e}")
+            sys.exit(1)
+
     else:
-        logger.info("Production model already superior. No changes made.")
-except Exception:
-    logger.warning("No production model found. Promoting staged to production.")
-    PROMOTE_TO_PROD = True
-
-if PROMOTE_TO_PROD :
-    
-    IMAGE_NAME = "starmagiciansr/mlops-tfx"
-    VERSION_TAG = f"v{(int(staged.version)/10)+1}"
-    logger.info("Building TF Serving Custom multi-model Docker Image 🐳")
-    run_cmd(f"docker build -t {IMAGE_NAME}:{VERSION_TAG} -t {IMAGE_NAME}:latest .")
+        logger.info("No promotion performed.")
 
 
-    client.set_registered_model_alias(EXPERIMENT_NAME, PRODUCTION_ALIAS, staged.version)
-    client.delete_registered_model_alias(EXPERIMENT_NAME , STAGED_ALIAS)
-    logger.success(f"Promoted version = {staged.version} → PRODUCTION")
+if __name__ == "__main__":
+    main()
