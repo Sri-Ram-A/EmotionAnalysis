@@ -28,36 +28,3 @@ paths = ProjectPaths()
 # Ensure directories exist
 paths.ARTIFACTS_DIR.mkdir(exist_ok=True)
 paths.RECENT_MODEL_DIR.mkdir(exist_ok=True)
-
-# Create model directories properly
-for dir_name in ["rnn", "lstm", "gru"]:
-    model_dir = paths.RECENT_MODEL_DIR / dir_name / "1"
-    model_dir.mkdir(parents=True, exist_ok=True)
-
-model_config_path = paths.RECENT_MODEL_DIR / "model_config.config"
-if not model_config_path.exists():
-    content = """
-    model_config_list {
-    config {
-        name: 'rnn'
-        base_path: '/models/rnn/'
-        model_platform: 'tensorflow'
-    }
-    config {
-        name: 'lstm'
-        base_path: '/models/lstm/'
-        model_platform: 'tensorflow'
-    }
-    config {
-        name: 'gru'
-        base_path: '/models/gru/'
-        model_platform: 'tensorflow'
-    }
-}
-    """.strip()
-    # Write to file
-    with open(model_config_path, "w") as f:
-        f.write(content)
-    logger.info(f"Created model_config.config at: {model_config_path}")
-    
-paths.RECENT_MODEL_DIR.mkdir(exist_ok=True)

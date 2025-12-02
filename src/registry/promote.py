@@ -73,7 +73,7 @@ def main():
     if PROMOTE_TO_PROD:
         try:
             REPO_NAME = "starmagiciansr/mlops-tfx"
-            VERSION_NO = f"{(int(staged.version)/10)+1}"
+            VERSION_NO = f"{(int(staged.version)/10)}"
             FINAL_IMAGE = f"tfserving/multimodel:v{VERSION_NO}"
 
             logger.info("Building TF Serving Custom multi-model Docker Image 🐳")
@@ -85,7 +85,7 @@ def main():
             # 🔥 Trigger Render Deployment
             full_image_uri = f"docker.io/{REPO_NAME}:v{VERSION_NO}"
             logger.info(f"Triggering Render deployment for image: {full_image_uri}")
-            helper.deploy_to_render(full_image_uri)
+            # helper.deploy_to_render(full_image_uri)
 
             # Set production alias
             client.set_registered_model_alias(EXPERIMENT_NAME, PRODUCTION_ALIAS, staged.version)

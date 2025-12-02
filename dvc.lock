@@ -60,23 +60,23 @@ stages:
           batch_size: 400
           test_size: 0.4
     outs:
-    - path: src/artifacts/recent_model/gru
+    - path: src/artifacts/recent_model/gru/1
       hash: md5
       md5: d751713988987e9331980363e24189ce.dir
       size: 0
       nfiles: 0
-    - path: src/artifacts/recent_model/lstm
+    - path: src/artifacts/recent_model/lstm/1
       hash: md5
       md5: d751713988987e9331980363e24189ce.dir
       size: 0
       nfiles: 0
     - path: src/artifacts/recent_model/model_config.config
       hash: md5
-      md5: 0369218594a77611af250d6e39b767a7
-      size: 357
-    - path: src/artifacts/recent_model/rnn
+      md5: 2ea9f573a5fb7a627355a152bc11643d
+      size: 353
+    - path: src/artifacts/recent_model/rnn/1
       hash: md5
-      md5: 3cd07645bfe0f51fe50c13bdafbe7529.dir
+      md5: a4e4488300682a1fbab2d728f9cf2b2b.dir
       size: 8267856
       nfiles: 4
   data:
@@ -141,11 +141,25 @@ stages:
   stage:
     cmd: python src/registry/stage.py
     deps:
-    - path: src/artifacts/recent_model/
+    - path: src/artifacts/recent_model/gru/1
       hash: md5
-      md5: 9ba9de05b5ee3a57bdab1f3a1af5bacf.dir
-      size: 8268212
-      nfiles: 5
+      md5: d751713988987e9331980363e24189ce.dir
+      size: 0
+      nfiles: 0
+    - path: src/artifacts/recent_model/lstm/1
+      hash: md5
+      md5: d751713988987e9331980363e24189ce.dir
+      size: 0
+      nfiles: 0
+    - path: src/artifacts/recent_model/model_config.config
+      hash: md5
+      md5: 2ea9f573a5fb7a627355a152bc11643d
+      size: 353
+    - path: src/artifacts/recent_model/rnn/1
+      hash: md5
+      md5: a4e4488300682a1fbab2d728f9cf2b2b.dir
+      size: 8267856
+      nfiles: 4
     - path: src/registry/stage.py
       hash: md5
       md5: 0efa99219ae5e20abfad6c9e580f42e9
@@ -153,11 +167,25 @@ stages:
   promote:
     cmd: python src/registry/promote.py
     deps:
-    - path: src/artifacts/recent_model/
+    - path: src/artifacts/recent_model/gru/1
       hash: md5
-      md5: 5aea9c5942a708789b27f4d929246a7d.dir
-      size: 8268213
-      nfiles: 5
+      md5: d751713988987e9331980363e24189ce.dir
+      size: 0
+      nfiles: 0
+    - path: src/artifacts/recent_model/lstm/1
+      hash: md5
+      md5: d751713988987e9331980363e24189ce.dir
+      size: 0
+      nfiles: 0
+    - path: src/artifacts/recent_model/model_config.config
+      hash: md5
+      md5: 2ea9f573a5fb7a627355a152bc11643d
+      size: 353
+    - path: src/artifacts/recent_model/rnn/1
+      hash: md5
+      md5: a4e4488300682a1fbab2d728f9cf2b2b.dir
+      size: 8267856
+      nfiles: 4
     - path: src/registry/stage.py
       hash: md5
       md5: 0efa99219ae5e20abfad6c9e580f42e9
