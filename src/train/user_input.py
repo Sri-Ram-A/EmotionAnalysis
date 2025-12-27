@@ -34,11 +34,7 @@ def main():
         mlflow.set_tracking_uri(config.mlflow.tracking_uri)
         mlflow.set_experiment(config.mlflow.experiment_name)
         mlflow.start_run(run_name=RUN_NAME)
-        autolog(
-            log_models=True,
-            log_input_examples=True,
-            log_model_signatures=True
-        )
+        autolog(log_models=True,log_input_examples=True,log_model_signatures=True)
         logger.info(f"MLFlow run started: {RUN_NAME} (Version {run_number})")
     
     # Load hdf5 dataset directly

@@ -13,28 +13,11 @@ Links:
 ## 2. How to connect MLFlow?
 
 ### Option A: Database (Recommended)
-
 * [https://mlflow.org/docs/latest/genai/getting-started/connect-environment/](https://mlflow.org/docs/latest/genai/getting-started/connect-environment/)
-
 ```bash
 mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
 ```
-
 * [https://mlflow.org/docs/latest/api_reference/python_api/mlflow.tensorflow.html](https://mlflow.org/docs/latest/api_reference/python_api/mlflow.tensorflow.html)
-
-### Metrics and Parameters
-
-* Training and validation loss.
-* User-specified metrics.
-* Optimizer config, e.g., learning_rate, momentum, etc.
-* Training configs, e.g., epochs, batch_size, etc.
-
-### Artifacts
-
-* Model summary on training start.
-* Saved Keras model in MLflow Model format.
-* TensorBoard logs on training end.
-
 ---
 
 ## 3. DVC Pipelines
@@ -246,6 +229,8 @@ How to Load Model for evaluation?
 model_uri = f"models:/{model_name}/{model_version}"
 model_uri = f"models:/{model_name}@{model_version_alias}"
 model = mlflow.keras.load_model(f"runs:/{latest_run_id}/model") # Chatgpt (not working for me)
+model_uri = str(Path(experiment._artifact_location) / "models" / str(latest_run.outputs.model_outputs[0].model_id)) # I found out on own using private variables
+
 ```
 
 Found a different method to load the model:
@@ -258,4 +243,11 @@ Found a different method to load the model:
 ## 8. Deploy to Render using API
   - Used to automate docker image deploy : 
     https://render.com/docs/deploying-an-image
+  - If you get permission denied error , use similar command
+    sudo chown -R $USER:$USER /home/srirama/sr_proj/EmotionAnalysis/src/artifacts
+  - Starting docker image problem in render
+    ```bash
+    docker history --no-trunc tensorflow/multimodel:v1.1
+    ```
+
 

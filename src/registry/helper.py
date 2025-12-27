@@ -69,13 +69,13 @@ def deploy_to_render(image_uri: str):
     Parameters:
         image_uri (str): Full image URI like "docker.io/starmagiciansr/mlops-tfx:v1.0"
     """
-    DEPLOY_HOOK = os.getenv("RENDER_DEPLOY_HOOK")
-    if not DEPLOY_HOOK:
+    RENDER_DEPLOY_HOOK = os.getenv("RENDER_DEPLOY_HOOK")
+    if not RENDER_DEPLOY_HOOK:
         raise ValueError("Set RENDER_DEPLOY_HOOK in your .env file!")
 
     # URL encode the image reference
     encoded_img = quote(image_uri, safe='')
-    url = f"{DEPLOY_HOOK}&imgURL={encoded_img}"
+    url = f"{RENDER_DEPLOY_HOOK}&imgURL={encoded_img}"
     logger.info(f"Triggering Render deploy → {url}")
     response = requests.get(url)
     if response.status_code == 200:

@@ -9,6 +9,9 @@ class ProjectPaths:
     BASE_DIR: Path = Path(__file__).resolve().parents[2]
     SRC_DIR: Path = Path(__file__).resolve().parents[1]
     
+    # Configuration
+    USER_CONFIG: Path = BASE_DIR / "params.yaml"
+    
     # Artifacts directories
     ARTIFACTS_DIR: Path = SRC_DIR / "artifacts"
     RECENT_MODEL_DIR: Path = ARTIFACTS_DIR / "recent_model"
@@ -20,8 +23,6 @@ class ProjectPaths:
     # Model files
     CONFIG_JSON_FILE: Path = RECENT_MODEL_DIR / "config.json"
     
-    # Configuration
-    USER_CONFIG: Path = BASE_DIR / "params.yaml"
     
 # Create instance for easy import
 paths = ProjectPaths()

@@ -39,13 +39,15 @@ stages:
     cmd: python src/registry/stage.py 
     deps:
       - src/registry/stage.py
-      - src/artifacts/recent_model/
-
+    params:
+      - train
+      - model
     
   promote:
     cmd: python src/registry/promote.py 
     deps:
-      - src/registry/stage.py
-      - src/artifacts/recent_model/
-
+      - src/registry/promote.py
+    params:
+      - train
+      - model
     

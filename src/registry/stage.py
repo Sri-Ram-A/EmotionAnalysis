@@ -8,7 +8,7 @@ from mlflow.tracking import MlflowClient
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(BASE_DIR))
 from src.utils.paths import paths
-from helper import print_yaml
+
 def main():
     config = OmegaConf.load(paths.USER_CONFIG)
     TRACKING_URI = config.mlflow.tracking_uri
@@ -16,7 +16,13 @@ def main():
     STAGED_ALIAS = "staged"
     mlflow.set_tracking_uri(TRACKING_URI)
     client = MlflowClient(TRACKING_URI)
-    
+
+    # Fetch the experiment
+    experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
+    if not experiment: 
+        raise ValueError(f"Experiment '{EXPERIMENT_NAME}' not found.")
+    logger.debug(f"Experiment Info: {experiment.__dict__}")
+
     # Fetch the registry
     try:
         client.get_registered_model(EXPERIMENT_NAME) # Ensure model registry entry exists
@@ -24,12 +30,6 @@ def main():
     except Exception:
         logger.warning(f"Registered model not found. Creating it now - '{EXPERIMENT_NAME}'.")
         client.create_registered_model(EXPERIMENT_NAME)
-
-    # Fetch the experiment
-    experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
-    if not experiment: 
-        raise ValueError(f"Experiment '{EXPERIMENT_NAME}' not found.")
-    logger.debug(f"Experiment Info: {experiment.__dict__}")
     
     # Fetch latest FINISHED run in the EXPERIMENT
     runs = client.search_runs(
@@ -100,7 +100,6 @@ def main():
             logger.success(f"Updated staged alias → version {mv_version}")
         else:
             logger.info(f"Staged model is already better or equal (staged_acc={staged_acc} >= latest_acc={latest_acc}). Keeping current staging unchanged.")
-
 
 if __name__ == "__main__":
     main()

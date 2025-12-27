@@ -1,6 +1,8 @@
+import os
 import mlflow
-from loguru import logger
 from pathlib import Path
+from loguru import logger
+from dotenv import load_dotenv
 from omegaconf import OmegaConf
 from mlflow.tracking import MlflowClient
 from mlflow.entities.model_registry import ModelVersion
@@ -12,11 +14,7 @@ sys.path.append(str(BASE_DIR))
 from src.utils.paths import paths
 import helper
 import dockerize
-from dotenv import load_dotenv
-import os
-# Load environment variables from .env file
-load_dotenv(BASE_DIR / ".env")
-DEPLOY_HOOK = os.getenv("DEPLOY_HOOK")
+
 def main():
     config = OmegaConf.load(paths.USER_CONFIG)
     TRACKING_URI = config.mlflow.tracking_uri
@@ -73,19 +71,19 @@ def main():
     if PROMOTE_TO_PROD:
         try:
             REPO_NAME = "starmagiciansr/mlops-tfx"
-            VERSION_NO = f"{(int(staged.version)/10)}"
-            FINAL_IMAGE = f"tfserving/multimodel:v{VERSION_NO}"
+            VERSION_NO = f"{(float(staged.version)/10)}"
+            IMAGE_NAME = f"tfserving/model:v{VERSION_NO}"
 
             logger.info("Building TF Serving Custom multi-model Docker Image 🐳")
-            dockerize.build_custom_tfx_image(FINAL_IMAGE)
+            dockerize.build_custom_tfx_image(IMAGE_NAME)
 
             # Push to DockerHub
-            helper.push_to_dockerhub(FINAL_IMAGE, VERSION_NO, REPO_NAME)
+            helper.push_to_dockerhub(IMAGE_NAME, VERSION_NO, REPO_NAME)
 
             # 🔥 Trigger Render Deployment
             full_image_uri = f"docker.io/{REPO_NAME}:v{VERSION_NO}"
             logger.info(f"Triggering Render deployment for image: {full_image_uri}")
-            # helper.deploy_to_render(full_image_uri)
+            helper.deploy_to_render(full_image_uri)
 
             # Set production alias
             client.set_registered_model_alias(EXPERIMENT_NAME, PRODUCTION_ALIAS, staged.version)
