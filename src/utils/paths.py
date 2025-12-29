@@ -14,7 +14,7 @@ class ProjectPaths:
     
     # Artifacts directories
     ARTIFACTS_DIR: Path = SRC_DIR / "artifacts"
-    RECENT_MODEL_DIR: Path = ARTIFACTS_DIR / "recent_model"
+    RECENT_MODEL_DIR: Path = ARTIFACTS_DIR / "recent"
     
     # Data files
     DATA_H5_FILE: Path = ARTIFACTS_DIR / "data.h5"

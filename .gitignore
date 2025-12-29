@@ -206,7 +206,7 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-/data
+.dvc-storage/
 **/mlruns/
 **/mlflow.db/
 mlflow.db

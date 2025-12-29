@@ -1,16 +1,16 @@
 schema: '2.0'
 stages:
   preprocess:
-    cmd: python src/data/preprocess.py
+    cmd: python -m src.data.preprocess
     deps:
-    - path: data/Twitter/raw/train.csv
+    - path: src/artifacts/data/Twitter/raw/train.csv
       hash: md5
       md5: 93b325080d2c8375dd28637a2c1d9de4
       size: 10325088
     - path: src/data/preprocess.py
       hash: md5
-      md5: ed508b4d3d04aff400225f269093cad5
-      size: 3191
+      md5: 7b9775420f7c41d18b9e23afaeb3f14a
+      size: 2884
     - path: src/data/slangs.txt
       hash: md5
       md5: 083f59b49a2666a1afcca477b64126a4
@@ -18,95 +18,35 @@ stages:
     params:
       params.yaml:
         dataset:
-          raw_path: data/Twitter/raw/train.csv
-          preprocessed_path: src/artifacts/data/preprocessed/train.csv
+          raw_path: 
+            /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/data/Twitter/raw/train.csv
+          preprocessed_path: 
+            /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/data/Twitter/preprocessed/train.csv
           name: Twitter
-          nrows_preprocess: None
+          nrows_preprocess: 100
           text_column_index: 3
           label_column_index: 2
     outs:
-    - path: src/artifacts/data/preprocessed/train.csv
+    - path: src/artifacts/data/Twitter/preprocessed/train.csv
       hash: md5
-      md5: f7608977437143f8d635ad1bbba912c8
-      size: 5688976
-  train:
-    cmd: python src/train/user_input.py
-    deps:
-    - path: src/artifacts/data.h5
-      hash: md5
-      md5: 441956a6157512b773d8f5b34f7e20e6
-      size: 23073060
-    - path: src/artifacts/tokenizer.json
-      hash: md5
-      md5: 12cb52de3f65dc4ab4bd87b2a6701d9f
-      size: 2526060
-    - path: src/train/user_input.py
-      hash: md5
-      md5: b0c72a933f48832c37b1b9b5cdebdb16
-      size: 3024
-    params:
-      params.yaml:
-        mlflow:
-          perform: 'true'
-          experiment_name: 1-REG
-          tracking_uri: http://localhost:5000
-        model:
-          architecture: rnn
-          embedding_dimension: 12
-        train:
-          perform: 'true'
-          nrows_train: None
-          epochs: 1
-          batch_size: 400
-          test_size: 0.4
-    outs:
-    - path: src/artifacts/recent_model/
-      hash: md5
-      md5: 29ba60b09d2945f34f87acb84a7104a8.dir
-      size: 3200502
-      nfiles: 4
-  data:
-    cmd: python src/data/user_input.py --config_path params.yaml
-    deps:
-    - path: src/data/user_input.py
-      hash: md5
-      md5: 98dedc472791fb654916b87508f86054
-      size: 1129
-    params:
-      params.yaml:
-        dataset:
-          path: data/Twitter/preprocessed/train.csv
-          name: Twitter
-          nrows: 30000
-        preprocess:
-          method: bow
-          padding:
-            padding: post
-            truncating: post
-            maxlen: 75
-    outs:
-    - path: src/artifacts/data.h5
-      hash: md5
-      md5: ed554551be8f4ccf7e752be710c48313
-      size: 9962048
-    - path: src/artifacts/tokenizer.json
-      hash: md5
-      md5: f01d9098bf515ed97a261e4f47446fb1
-      size: 1539678
+      md5: b0397c910bc6e5e2153d21f552edc34d
+      size: 8848
   featurize:
-    cmd: python src/data/user_input.py
+    cmd: python -m src.data.main
     deps:
-    - path: src/data/user_input.py
+    - path: src/data/main.py
       hash: md5
-      md5: 4622e6c1cb6e267a25a0a69c4ea3056e
-      size: 683
+      md5: e713244075706d14ccb4dd9289d2c5ab
+      size: 540
     params:
       params.yaml:
         dataset:
-          raw_path: data/Twitter/raw/train.csv
-          preprocessed_path: src/artifacts/data/preprocessed/train.csv
+          raw_path: 
+            /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/data/Twitter/raw/train.csv
+          preprocessed_path: 
+            /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/data/Twitter/preprocessed/train.csv
           name: Twitter
-          nrows_preprocess: None
+          nrows_preprocess: 100
           text_column_index: 3
           label_column_index: 2
         featurize:
@@ -118,45 +58,81 @@ stages:
     outs:
     - path: src/artifacts/data.h5
       hash: md5
-      md5: 441956a6157512b773d8f5b34f7e20e6
-      size: 23073060
+      md5: 9933a1dc12bea1e79f32fea19d5ea525
+      size: 32828
     - path: src/artifacts/tokenizer.json
       hash: md5
-      md5: 12cb52de3f65dc4ab4bd87b2a6701d9f
-      size: 2526060
+      md5: e390a5cd254dd4b71a99e6005699e2d9
+      size: 29329
+  train:
+    cmd: python -m src.train.main
+    deps:
+    - path: src/artifacts/data.h5
+      hash: md5
+      md5: 9933a1dc12bea1e79f32fea19d5ea525
+      size: 32828
+    - path: src/artifacts/tokenizer.json
+      hash: md5
+      md5: e390a5cd254dd4b71a99e6005699e2d9
+      size: 29329
+    - path: src/train/main.py
+      hash: md5
+      md5: 05f3630186ecb725f7cf74e1aea6766c
+      size: 3016
+    params:
+      params.yaml:
+        mlflow:
+          perform: true
+          experiment_name: 1-GRU
+          tracking_uri: http://localhost:5000
+        model:
+          architecture: gru
+          embedding_dimension: 14
+        train:
+          perform: true
+          nrows_train:
+          epochs: 5
+          batch_size: 400
+          test_size: 0.4
+    outs:
+    - path: src/artifacts/recent
+      hash: md5
+      md5: 2e1bc0eea718a04eff8689b94a2ac837.dir
+      size: 6001823
+      nfiles: 12
   stage:
-    cmd: python src/registry/stage.py
+    cmd: python -m src.registry.stage
     deps:
     - path: src/registry/stage.py
       hash: md5
-      md5: 11e83d5fc66f27d2485be45d768c3bd1
-      size: 4501
+      md5: bdf5f53bef855e77105fd80202f92045
+      size: 2710
     params:
       params.yaml:
         model:
-          architecture: rnn
-          embedding_dimension: 12
+          architecture: gru
+          embedding_dimension: 14
         train:
-          perform: 'true'
-          nrows_train: None
-          epochs: 1
+          perform: true
+          nrows_train:
+          epochs: 5
           batch_size: 400
           test_size: 0.4
   promote:
-    cmd: python src/registry/promote.py
+    cmd: python -m src.registry.promote
     deps:
     - path: src/registry/promote.py
       hash: md5
-      md5: 3114289431ea6564751b275ccf727c80
-      size: 4221
+      md5: 46a78c92e9ad97281262813f0ff06fe8
+      size: 4152
     params:
       params.yaml:
         model:
-          architecture: rnn
-          embedding_dimension: 12
+          architecture: gru
+          embedding_dimension: 14
         train:
-          perform: 'true'
-          nrows_train: None
-          epochs: 1
+          perform: true
+          nrows_train:
+          epochs: 5
           batch_size: 400
           test_size: 0.4

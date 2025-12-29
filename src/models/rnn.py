@@ -1,14 +1,6 @@
-# Suppress INFO and WARNING messages (shows lot of info in terminal lol)
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  
 import tensorflow as tf
-tf.get_logger().setLevel('ERROR')
-import logging
-tf_logger = tf.get_logger()
-tf_logger.setLevel(logging.ERROR)
 import warnings
 warnings.filterwarnings("ignore")
-
 from keras.models import Sequential
 from keras.layers import SimpleRNN, Dense, Embedding,Input,Dropout
 from loguru import logger

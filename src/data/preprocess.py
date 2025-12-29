@@ -1,33 +1,27 @@
-import sys
 import pandas as pd
-from pathlib import Path
-from omegaconf import OmegaConf
-import preprocessers as pfunc
 from tqdm import tqdm
+from pathlib import Path
 from loguru import logger
-BASE_DIR = Path(__file__).resolve().parents[2]
-sys.path.append(str(BASE_DIR))
 from src.utils.paths import paths
+from . import preprocessers as pfunc
+from src.utils.schema import Config
 
 # Enable tqdm for pandas
 tqdm.pandas()
 
-def print_info(msg, color="blue"):
-    colors = {"blue": "\033[94m", "green": "\033[92m", "reset": "\033[0m"}
-    print(f"{colors.get(color, '')}{msg}{colors['reset']}")
-
 def main():
-    config = OmegaConf.load(paths.USER_CONFIG)
+    config = Config.load(paths.USER_CONFIG)
+    print('\u2500' * 100)
 
     dataset_path = Path(config.dataset.raw_path)
     text_col_idx = config.dataset.text_column_index
     label_col_idx = config.dataset.label_column_index
-    nrows = None if str(config.dataset.nrows_preprocess).lower() == "none" else int(config.dataset.nrows_preprocess)
+    nrows: int | None = config.dataset.nrows_preprocess
 
     # Read data with specific columns by index
     df = pd.read_csv(dataset_path, usecols=[text_col_idx, label_col_idx], nrows=nrows, header=None)
     logger.debug(df.sample(3))
-    print_info(f"✓ Loaded {len(df)} rows using col indices {text_col_idx} and {label_col_idx}", "green")
+    logger.info(f"Loaded {len(df)} rows using col indices {text_col_idx} and {label_col_idx}")
     
     full_cols = pd.read_csv(dataset_path, nrows=0).columns
     
@@ -52,7 +46,7 @@ def main():
         .drop_duplicates(subset=["cleaned_text"])
         .reset_index(drop=True)
     )
-    print_info(f"✓ Removed {orig - len(df)} duplicates/nulls", "blue")
+    logger.info(f"Removed {orig - len(df)} duplicates/nulls")
 
     # Fast steps (no progress bar needed)
     fast_steps = [
@@ -67,7 +61,7 @@ def main():
 
     for name, step in fast_steps:
         df["cleaned_text"] = df["cleaned_text"].apply(step)
-        print_info(f"✓ {name}", "blue")
+        logger.info(f"{name}")
 
     # Slow steps (with progress bar for each row)
     slow_steps = [
@@ -78,7 +72,7 @@ def main():
     ]
 
     for name, step in slow_steps:
-        print_info(f"→ {name}...", "blue")
+        logger.info(f"→ {name}...", "blue")
         df["cleaned_text"] = df["cleaned_text"].progress_apply(step)
 
     # Save
@@ -86,8 +80,8 @@ def main():
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)
 
-    print_info(f"✓ Saved to {output_path}", "green")
-
+    logger.info(f"Saved to {output_path}")
+    print('\u2500' * 100)
 
 if __name__ == "__main__":
     main()

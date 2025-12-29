@@ -7,7 +7,7 @@ Links:
 * [https://dvc.org/doc/start](https://dvc.org/doc/start)
 * Below didn’t work due to rate limits and stuff:
 * [https://dvc.org/doc/user-guide/data-management/remote-storage/google-drive#using-a-custom-google-cloud-project-recommended](https://dvc.org/doc/user-guide/data-management/remote-storage/google-drive#using-a-custom-google-cloud-project-recommended)
-
+- Very Important =  persist : true keyword in dvc.yaml
 ---
 
 ## 2. How to connect MLFlow?
@@ -249,5 +249,37 @@ Found a different method to load the model:
     ```bash
     docker history --no-trunc tensorflow/multimodel:v1.1
     ```
+  - Cannot deploy GPU models like GRU and LSTM in render
+  - Therefore used latest-gpu image of tensorflow gpu with below command using **docker run --gpus all**
+```bash
+docker run --gpus all -p 8501:8501 --name gru_tfx_gpu   --mount type=bind,source=/home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent/gru,target=/models/gru   -e MODEL_NAME=gru   -t tensorflow/serving:latest-gpu
+```
 
+## 9. Prometheus and Grafana
+- First Setup Docker Containers :
+- Grafana : https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/
+```bash
+# create a directory for your data
+mkdir data/grafana
 
+# start grafana with your user id and using the data directory
+docker run -d -p 3000:3000 --name=grafana \
+  --user "$(id -u)" \
+  --volume "$PWD/monitoring/data/grafana:/var/lib/grafana" \
+  grafana/grafana-enterprise
+```
+- Using Bind Mounts (https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/#use-bind-mounts-1)
+  - If you need docker-compose then check monitor/ folder and use command
+  ```bash
+  docker compose up -d
+  ```
+## 10. Evidently AI + P&G
+- https://docs.evidentlyai.com/docs/setup/installation
+- https://www.evidentlyai.com/blog/tutorial-detecting-drift-in-text-data
+- Notebook from above vlog : https://github.com/evidentlyai/community-examples/blob/main/tutorials/NLP_monitoring_tutorial.ipynb
+- Some helpful GPT commands
+```bash
+evidently ui
+evidently ui --workspace monitoring
+```
+- Getting lot of import errors,since I am using latest version

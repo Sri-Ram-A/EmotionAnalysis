@@ -10,6 +10,19 @@ import h5py
 from tensorflow.keras.preprocessing.text import tokenizer_from_json # pyright: ignore[reportMissingImports]
 from typing import Any
 import io
+from pygments import highlight
+from pygments.lexers import YamlLexer
+from pygments.formatters import Terminal256Formatter
+import yaml
+
+def print_yaml(obj, debug: bool = False):
+    """Pretty-print YAML only when debug is enabled"""
+    if not debug:
+        return
+    yaml_str = yaml.dump(obj, sort_keys=False)
+    formatter = Terminal256Formatter(style="monokai")
+    logger.debug("\n{}", highlight(yaml_str, YamlLexer(), formatter))
+
 
 def save_h5(X, y, file_path):
     with h5py.File(file_path, "w") as f:
@@ -38,39 +51,6 @@ def load_tokenizer(file_path):
         tok_dict = json.load(f)
     logger.info(f"Tokenizer loaded from {file_path}")
     return tokenizer_from_json(tok_dict)
-
-def save_pkl(file_path , x):
-    file_path = Path(file_path)
-    # Create parent directory ONLY
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(file_path, "wb") as f:
-        pickle.dump(x, f)
-    logger.success(f"Saved at {file_path}")
-    
-def load_pkl(file_path):
-    with open(file_path, "rb") as f:
-        loaded_data = pickle.load(f)
-    logger.success(f"Loaded pkl from {file_path}")
-    return loaded_data
-
-def get_model_signature(input_shape, output_shape):
-    input_schema = Schema([
-        TensorSpec(
-            type=np.dtype("int32"),          # <-- works for everyone
-            shape=(-1, *input_shape[1:]),
-            name="input"
-        )
-    ])
-
-    output_schema = Schema([
-        TensorSpec(
-            type=np.dtype("int32"),
-            shape=(-1, *output_shape[1:]),
-            name="output"
-        )
-    ])
-
-    return ModelSignature(inputs=input_schema, outputs=output_schema)
 
 def get_next_run_number(experiment_name, tracking_uri):
     """Get next run number for the experiment"""

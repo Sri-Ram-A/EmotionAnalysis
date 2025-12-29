@@ -1,9 +1,8 @@
+from loguru import logger
+from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.preprocessing.text import Tokenizer # type: ignore
 from tensorflow.keras.preprocessing.sequence import pad_sequences # type: ignore
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.utils import to_categorical # type: ignore
-from loguru import logger
 
 def fit(corpus ,labels ,parameters):
     parameters = parameters.padding

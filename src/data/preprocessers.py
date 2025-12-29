@@ -5,9 +5,9 @@ import contractions
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from pathlib import Path
-BASE_DIR =  Path(__file__).resolve().parents[2]
 import nltk
 nltk.download('punkt_tab')
+BASE_DIR =  Path(__file__).resolve().parents[2]
 
 #  1
 def remove_html_tags(text):

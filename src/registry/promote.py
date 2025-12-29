@@ -1,31 +1,29 @@
-import os
 import mlflow
-from pathlib import Path
 from loguru import logger
-from dotenv import load_dotenv
-from omegaconf import OmegaConf
 from mlflow.tracking import MlflowClient
-from mlflow.entities.model_registry import ModelVersion
 from mlflow.entities import Run
+from mlflow.entities.model_registry import ModelVersion
 import sys
-
-BASE_DIR = Path(__file__).resolve().parents[2]
-sys.path.append(str(BASE_DIR))
+from . import dockerize
 from src.utils.paths import paths
-import helper
-import dockerize
+from src.utils.schema import Config
 
 def main():
-    config = OmegaConf.load(paths.USER_CONFIG)
+
+    # Load config file 
+    config = Config.load(paths.USER_CONFIG)
     TRACKING_URI = config.mlflow.tracking_uri
     EXPERIMENT_NAME = config.mlflow.experiment_name
+    MODEL_ARCHITECTURE = config.model.architecture.lower()
+
+    # Champion and Challengers
     STAGED_ALIAS = "staged"
     PRODUCTION_ALIAS = "inprod"
     PROMOTE_TO_PROD = False
+
+    # Verify the model registry exists
     mlflow.set_tracking_uri(TRACKING_URI)
     client = MlflowClient()
-    
-    # Verify the model registry exists
     try:
         client.get_registered_model(EXPERIMENT_NAME)
         logger.info(f"Found registered model: '{EXPERIMENT_NAME}'")
@@ -44,7 +42,7 @@ def main():
     # Get staged model run details
     try:
         staged_run = client.get_run(str(staged.run_id))
-        staged_acc = staged_run.data.metrics.get("val_accuracy") or staged_run.data.metrics.get("accuracy") or -float("inf")
+        staged_acc = staged_run.data.metrics.get("val_accuracy") or staged_run.data.metrics.get("accuracy") or -1
         logger.info(f"Staged Model - Run: {staged.run_id}, Accuracy: {staged_acc}")
     except Exception as e:
         logger.error(f"Failed to get staged model run details: {e}")
@@ -71,19 +69,18 @@ def main():
     if PROMOTE_TO_PROD:
         try:
             REPO_NAME = "starmagiciansr/mlops-tfx"
-            VERSION_NO = f"{(float(staged.version)/10)}"
-            IMAGE_NAME = f"tfserving/model:v{VERSION_NO}"
+            VERSION_NO = str(staged.version)
+            IMAGE_NAME = f"tfserving/{MODEL_ARCHITECTURE}:v{VERSION_NO}"
 
-            logger.info("Building TF Serving Custom multi-model Docker Image 🐳")
-            dockerize.build_custom_tfx_image(IMAGE_NAME)
-
+            # 🐳 Build TFServing Image
+            dockerize.build_custom_tfx_image(IMAGE_NAME,MODEL_ARCHITECTURE)
             # Push to DockerHub
-            helper.push_to_dockerhub(IMAGE_NAME, VERSION_NO, REPO_NAME)
+            dockerize.push_to_dockerhub(IMAGE_NAME,REPO_NAME,VERSION_NO)
 
             # 🔥 Trigger Render Deployment
             full_image_uri = f"docker.io/{REPO_NAME}:v{VERSION_NO}"
             logger.info(f"Triggering Render deployment for image: {full_image_uri}")
-            helper.deploy_to_render(full_image_uri)
+            dockerize.deploy_to_render(full_image_uri)
 
             # Set production alias
             client.set_registered_model_alias(EXPERIMENT_NAME, PRODUCTION_ALIAS, staged.version)
@@ -99,7 +96,6 @@ def main():
 
     else:
         logger.info("No promotion performed.")
-
 
 if __name__ == "__main__":
     main()

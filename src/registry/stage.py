@@ -1,105 +1,72 @@
-import sys
 import mlflow
-from pathlib import Path
 from loguru import logger
-from omegaconf import OmegaConf
 from mlflow.tracking import MlflowClient
-
-BASE_DIR = Path(__file__).resolve().parents[2]
-sys.path.append(str(BASE_DIR))
 from src.utils.paths import paths
+from src.utils.schema import Config
+from src.utils.helper import print_yaml
+
+STAGED_ALIAS = "staged"
 
 def main():
-    config = OmegaConf.load(paths.USER_CONFIG)
-    TRACKING_URI = config.mlflow.tracking_uri
-    EXPERIMENT_NAME = config.mlflow.experiment_name
-    STAGED_ALIAS = "staged"
-    mlflow.set_tracking_uri(TRACKING_URI)
-    client = MlflowClient(TRACKING_URI)
+    config = Config.load(paths.USER_CONFIG)
+    mlflow.set_tracking_uri(config.mlflow.tracking_uri)
 
-    # Fetch the experiment
-    experiment = client.get_experiment_by_name(EXPERIMENT_NAME)
-    if not experiment: 
-        raise ValueError(f"Experiment '{EXPERIMENT_NAME}' not found.")
-    logger.debug(f"Experiment Info: {experiment.__dict__}")
+    # Get Experiment
+    client = MlflowClient()
+    experiment = client.get_experiment_by_name(config.mlflow.experiment_name)
+    if not experiment:
+        raise ValueError(f"Experiment '{config.mlflow.experiment_name}' not found")
+    logger.info("Using experiment: {}", experiment.name)
+    print_yaml(experiment, config.registry.debug)
 
-    # Fetch the registry
+    # Ensure registered model exists
     try:
-        client.get_registered_model(EXPERIMENT_NAME) # Ensure model registry entry exists
-        logger.info(f"Registered model already exists - '{EXPERIMENT_NAME}'.")
+        client.get_registered_model(experiment.name)
     except Exception:
-        logger.warning(f"Registered model not found. Creating it now - '{EXPERIMENT_NAME}'.")
-        client.create_registered_model(EXPERIMENT_NAME)
-    
-    # Fetch latest FINISHED run in the EXPERIMENT
+        logger.warning("Registered model not found. Creating one.")
+        client.create_registered_model(experiment.name)
+
+    # Fetch latest finished run
     runs = client.search_runs(
-        experiment_ids=[experiment.experiment_id],
+        [experiment.experiment_id],
         filter_string="attributes.status = 'FINISHED'",
         order_by=["attributes.start_time DESC"],
         max_results=1,
     )
-    if not runs: 
-        raise ValueError("No finished runs found for this experiment.")
-    
-    latest_run = runs[0]
-    LATEST_RUN_ID = latest_run.info.run_id
-    LATEST_RUN_NAME = latest_run.info.run_name
-    latest_acc = latest_run.data.metrics.get("val_accuracy") or latest_run.data.metrics.get("accuracy") or -float("inf")
-    logger.success(f"Latest Run Name : {LATEST_RUN_NAME} | Run ID : {LATEST_RUN_ID} | Metrics : {latest_run.data.metrics}")
-    
-    # Get model artifact path
-    model_uri = str(Path(experiment._artifact_location) / "models" / str(latest_run.outputs.model_outputs[0].model_id))
+    if not runs:
+        raise ValueError("No finished runs found")
+    run = runs[0]
+    run_id = run.info.run_id
+    run_name = run.info.run_name
+    latest_acc = run.data.metrics.get("val_accuracy", -1)
+    logger.info("Latest run | name={} | acc={}", run_name, latest_acc)
+    print_yaml(runs[0],config.registry.debug)
+    model_uri = f"runs:/{run_id}/model"
+    # Get model artifact path model_uri = str(Path(experiment._artifact_location) / "models" / str(latest_run.outputs.model_outputs[0].model_id))
 
-    # Try fetching staged model alias
+    # Fetch staged model (if any)
     try:
-        staged = client.get_model_version_by_alias(name=EXPERIMENT_NAME, alias=STAGED_ALIAS)
-        logger.info(f"Found staged model version={staged.version}")
+        staged = client.get_model_version_by_alias(experiment.name, STAGED_ALIAS)
+        if staged.run_id:
+            staged_run = client.get_run(staged.run_id)
+            staged_acc = staged_run.data.metrics.get("val_accuracy", -1)
+            logger.info("Staged model | version={} | acc={}", staged.version, staged_acc)
     except Exception:
-        staged = None
-        logger.warning("No staged alias found. Will register the current model as staged.")
+        staged, staged_acc = None, -1
+        logger.warning("No staged model found")
 
-    # If no staged model exists → stage the latest
-    if staged is None:
-        mv = client.create_model_version(
-            name=EXPERIMENT_NAME,
+    # Promote if better
+    if latest_acc > staged_acc:
+        versions = client.search_model_versions(f"run_id='{run_id}'")
+        mv = versions[0] if versions else client.create_model_version(
+            name=experiment.name,
             source=model_uri,
-            run_id=LATEST_RUN_ID,
+            run_id=run_id,
         )
-        client.set_registered_model_alias(EXPERIMENT_NAME, STAGED_ALIAS, mv.version)
-        logger.success(f"MODEL STAGED: version = {mv.version} with accuracy = {latest_acc}")
-
+        client.set_registered_model_alias(experiment.name, STAGED_ALIAS, mv.version)
+        logger.success("Model staged | version={} | acc={}", mv.version, latest_acc)
     else:
-        # Get staged model accuracy
-        staged_run = client.get_run(str(staged.run_id))
-        staged_acc = staged_run.data.metrics.get("val_accuracy") or staged_run.data.metrics.get("accuracy") or -float("inf")
-        logger.info(f"Staged model version={staged.version} | acc={staged_acc}")
-
-        # Compare & promote if better
-        if latest_acc > staged_acc:
-            logger.success(f"Latest model is better (acc={latest_acc} > {staged_acc}). Promoting to staged.")
-            
-            # Check if this run already has a model version
-            existing_versions = client.search_model_versions(f"run_id='{LATEST_RUN_ID}'")
-            
-            if existing_versions:
-                # Use existing model version
-                mv_version = existing_versions[0].version
-                logger.info(f"Model version already exists for this run: version={mv_version}")
-            else:
-                # Create new model version
-                mv = client.create_model_version(
-                    name=EXPERIMENT_NAME,
-                    source=model_uri,
-                    run_id=LATEST_RUN_ID,
-                )
-                mv_version = mv.version
-                logger.info(f"Created new model version: {mv_version}")
-            
-            # Update the staged alias to point to this version
-            client.set_registered_model_alias(EXPERIMENT_NAME, STAGED_ALIAS, mv_version)
-            logger.success(f"Updated staged alias → version {mv_version}")
-        else:
-            logger.info(f"Staged model is already better or equal (staged_acc={staged_acc} >= latest_acc={latest_acc}). Keeping current staging unchanged.")
+        logger.info("Staged model remains unchanged")
 
 if __name__ == "__main__":
     main()
