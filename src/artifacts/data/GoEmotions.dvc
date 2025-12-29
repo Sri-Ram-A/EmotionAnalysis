@@ -1,0 +1,6 @@
+outs:
+- md5: 6e1adf8ff4a23f75cb36c08b3fa8ab62.dir
+  size: 47546619
+  nfiles: 25
+  hash: md5
+  path: GoEmotions

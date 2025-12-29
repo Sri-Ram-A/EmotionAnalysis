@@ -23,14 +23,14 @@ stages:
           preprocessed_path: 
             /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/data/Twitter/preprocessed/train.csv
           name: Twitter
-          nrows_preprocess: 100
+          nrows_preprocess:
           text_column_index: 3
           label_column_index: 2
     outs:
     - path: src/artifacts/data/Twitter/preprocessed/train.csv
       hash: md5
-      md5: b0397c910bc6e5e2153d21f552edc34d
-      size: 8848
+      md5: f7608977437143f8d635ad1bbba912c8
+      size: 5688976
   featurize:
     cmd: python -m src.data.main
     deps:
@@ -46,7 +46,7 @@ stages:
           preprocessed_path: 
             /home/srirama/sr_proj/EmotionAnalysis/src/artifacts/data/Twitter/preprocessed/train.csv
           name: Twitter
-          nrows_preprocess: 100
+          nrows_preprocess:
           text_column_index: 3
           label_column_index: 2
         featurize:
@@ -58,23 +58,23 @@ stages:
     outs:
     - path: src/artifacts/data.h5
       hash: md5
-      md5: 9933a1dc12bea1e79f32fea19d5ea525
-      size: 32828
+      md5: 441956a6157512b773d8f5b34f7e20e6
+      size: 23073060
     - path: src/artifacts/tokenizer.json
       hash: md5
-      md5: e390a5cd254dd4b71a99e6005699e2d9
-      size: 29329
+      md5: fae5cf6604b7fe79a63b6a20847d80f8
+      size: 2526060
   train:
     cmd: python -m src.train.main
     deps:
     - path: src/artifacts/data.h5
       hash: md5
-      md5: 9933a1dc12bea1e79f32fea19d5ea525
-      size: 32828
+      md5: 441956a6157512b773d8f5b34f7e20e6
+      size: 23073060
     - path: src/artifacts/tokenizer.json
       hash: md5
-      md5: e390a5cd254dd4b71a99e6005699e2d9
-      size: 29329
+      md5: fae5cf6604b7fe79a63b6a20847d80f8
+      size: 2526060
     - path: src/train/main.py
       hash: md5
       md5: 05f3630186ecb725f7cf74e1aea6766c
@@ -97,8 +97,8 @@ stages:
     outs:
     - path: src/artifacts/recent
       hash: md5
-      md5: 2e1bc0eea718a04eff8689b94a2ac837.dir
-      size: 6001823
+      md5: db0a61c074b4b8a9d32f7f8ac2129ce9.dir
+      size: 8474715
       nfiles: 12
   stage:
     cmd: python -m src.registry.stage
