@@ -42,8 +42,8 @@ stages:
       size: 2526060
     - path: src/train/user_input.py
       hash: md5
-      md5: 24bbf18380382f397f97648867a46ce2
-      size: 3060
+      md5: b0c72a933f48832c37b1b9b5cdebdb16
+      size: 3024
     params:
       params.yaml:
         mlflow:
@@ -62,8 +62,8 @@ stages:
     outs:
     - path: src/artifacts/recent_model/
       hash: md5
-      md5: 0395bb31a005e1f9291615602ca20dc0.dir
-      size: 3200504
+      md5: 29ba60b09d2945f34f87acb84a7104a8.dir
+      size: 3200502
       nfiles: 4
   data:
     cmd: python src/data/user_input.py --config_path params.yaml
@@ -129,8 +129,8 @@ stages:
     deps:
     - path: src/registry/stage.py
       hash: md5
-      md5: 2dbb8c2ef1bab7536b69b4eeb1677cfe
-      size: 4536
+      md5: 11e83d5fc66f27d2485be45d768c3bd1
+      size: 4501
     params:
       params.yaml:
         model:
