@@ -1,4 +1,5 @@
 stages:
+
   preprocess:
     cmd: python -m src.data.preprocess
     deps:
@@ -11,43 +12,43 @@ stages:
       - src/artifacts/data/Twitter/preprocessed/train.csv
 
   featurize:
-    cmd: python -m src.data.main 
+    cmd: python -m src.data.main
     deps:
-      - src/data/main.py
+    - src/data/main.py
     params:
-      - dataset
-      - featurize
+    - dataset
+    - featurize
     outs:
-      - src/artifacts/data.h5
-      - src/artifacts/tokenizer.json
+    - src/artifacts/data.h5
+    - src/artifacts/tokenizer.json
 
   train:
     cmd: python -m src.train.main
     deps:
-      - src/train/main.py
-      - src/artifacts/data.h5
-      - src/artifacts/tokenizer.json
+    - src/train/main.py
+    - src/artifacts/data.h5
+    - src/artifacts/tokenizer.json
     params:
-      - mlflow
-      - train
-      - model
+    - mlflow
+    - train
+    - model
     outs:
-      - src/artifacts/recent:
-          persist: true
+    - src/artifacts/recent:
+        persist: true
 
   stage:
-    cmd: python -m src.registry.stage 
+    cmd: python -m src.registry.stage
     deps:
-      - src/registry/stage.py
+    - src/registry/stage.py
     params:
-      - train
-      - model
-    
+    - train
+    - model
+
   promote:
-    cmd: python -m src.registry.promote 
+    cmd: python -m src.registry.promote
     deps:
-      - src/registry/promote.py
+    - src/registry/promote.py
     params:
-      - train
-      - model
-    
+    - train
+    - model
+

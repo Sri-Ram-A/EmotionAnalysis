@@ -16,6 +16,8 @@ Links:
 * [https://mlflow.org/docs/latest/genai/getting-started/connect-environment/](https://mlflow.org/docs/latest/genai/getting-started/connect-environment/)
 ```bash
 mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
+mlflow ui --host 0.0.0.0 --port 6000
+
 ```
 * [https://mlflow.org/docs/latest/api_reference/python_api/mlflow.tensorflow.html](https://mlflow.org/docs/latest/api_reference/python_api/mlflow.tensorflow.html)
 ---
@@ -254,25 +256,92 @@ Found a different method to load the model:
 ```bash
 docker run --gpus all -p 8501:8501 --name gru_tfx_gpu   --mount type=bind,source=/home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent/gru,target=/models/gru   -e MODEL_NAME=gru   -t tensorflow/serving:latest-gpu
 ```
+  - Make inference using (https://www.tensorflow.org/tfx/serving/serving_config#rest_usage)
 
-## 9. Prometheus and Grafana
-- First Setup Docker Containers :
-- Grafana : https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/
+## 9. Prometheus and Grafana Setup
+### Now you can run everything using just docker compose up -d (So skip below journey)
+To monitor a TensorFlow Serving instance, you can use the combination of Prometheus (to scrape and store metrics) and Grafana (to visualize them). Both services, along with your model server, must reside on the same Docker network to communicate via container names.
+---
+### 1. Grafana Setup
+You can run Grafana as a standalone container using a bind mount to persist your dashboards and data.
 ```bash
-# create a directory for your data
-mkdir data/grafana
-
-# start grafana with your user id and using the data directory
+# Create a directory for your data
+mkdir -p data/grafana
+# Start Grafana with your user ID and volume mapping
 docker run -d -p 3000:3000 --name=grafana \
   --user "$(id -u)" \
   --volume "$PWD/monitoring/data/grafana:/var/lib/grafana" \
   grafana/grafana-enterprise
 ```
-- Using Bind Mounts (https://grafana.com/docs/grafana/latest/setup-grafana/installation/docker/#use-bind-mounts-1)
-  - If you need docker-compose then check monitor/ folder and use command
-  ```bash
-  docker compose up -d
-  ```
+Alternatively, if using **Docker Compose**, navigate to your monitor folder and run:
+
+```bash
+docker compose up -d
+```
+All containers in the compose file will automatically join a default network (e.g., `monitor_default`).
+---
+
+### 2. Serving TensorFlow Model with Monitoring
+To allow Prometheus to scrape metrics, you must enable the monitoring endpoint in TensorFlow Serving using a `monitoring_config_file`.
+**Run the TF Serving Container:**
+```bash
+docker run --gpus all \
+  -p 8501:8501 \
+  --name gru_tfx_gpu \
+  --network monitor_default \
+  --mount type=bind,source=/home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent/gru,target=/models/gru \
+  --mount type=bind,source=/home/srirama/sr_proj/EmotionAnalysis/src/artifacts/recent/model.config,target=/model.config \
+  tensorflow/serving:latest-gpu \
+  --model_name=gru \
+  --model_base_path=/models/gru \
+  --rest_api_port=8501 \
+  --monitoring_config_file=/model.config
+```
+
+Verify the metrics are being exported by visiting: `http://localhost:8501/monitoring/prometheus/metrics`.
+
+---
+### 3. Prometheus Configuration
+Prometheus needs a configuration file (`prometheus.yml`) to know where to find the TensorFlow metrics.
+**Run the Prometheus Container:**
+```bash
+docker run -d \
+  --name prometheus \
+  --network monitor_default \
+  -p 9090:9090 \
+  -v $PWD/monitor/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
+  prom/prometheus
+```
+**Verification:**
+
+1. Open `http://localhost:9090`.
+2. Navigate to **Status** -> **Targets**.
+3. Ensure the `tensorflow-serving` target status is **UP**. If it is **DOWN**, check the container names and network connectivity before proceeding.
+---
+### 4. Connecting Prometheus to Grafana
+Once both services are running on the `monitor_default` network, you must link them within the Grafana UI.
+#### Step 1: Add Data Source
+
+1. Log in to Grafana (`http://localhost:3000`).
+2. In the left sidebar, go to **Connections** (or the Gear icon for **Settings**).
+3. Click on **Data Sources**.
+4. Click **Add data source** and select **Prometheus**.
+
+#### Step 2: Configure Connection
+Fill in the following details under the HTTP section:
+| Field | Value |
+| --- | --- |
+| **URL** | `http://prometheus:9090` |
+| **Access** | Server (default) |
+
+**Important:** Do not use `localhost` in the URL field. Because Grafana is running inside a Docker container, `localhost` refers to the Grafana container itself. Using `http://prometheus:9090` allows Grafana to use Docker's internal DNS to find the Prometheus container.
+
+#### Step 3: Save and Test
+Click **Save & test**. You should see a green notification confirming the data source is working.
+---
+
+
+Would you like me to help you create a specific Grafana dashboard JSON or a Prometheus query to track your model's inference latency?
 ## 10. Evidently AI + P&G
 - https://docs.evidentlyai.com/docs/setup/installation
 - https://www.evidentlyai.com/blog/tutorial-detecting-drift-in-text-data
