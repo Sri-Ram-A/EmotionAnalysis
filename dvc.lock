@@ -52,11 +52,11 @@ stages:
       params.yaml:
         mlflow:
           perform: true
-          experiment_name: 1-RNN
+          experiment_name: 1-LSTM
           tracking_uri: http://localhost:5000
         model:
-          architecture: rnn
-          embedding_dimension: 14
+          architecture: lstm
+          embedding_dimension: 20
         train:
           perform: true
           nrows_train:
@@ -66,9 +66,9 @@ stages:
     outs:
     - path: src/artifacts/recent
       hash: md5
-      md5: 2c75f3763da05f378b771512c57ecf01.dir
-      size: 10956303
-      nfiles: 12
+      md5: 226082ca3d0536f7e1a068bdb31eaf0d.dir
+      size: 14753959
+      nfiles: 13
   stage:
     cmd: python -m src.registry.stage
     deps:
@@ -79,8 +79,8 @@ stages:
     params:
       params.yaml:
         model:
-          architecture: rnn
-          embedding_dimension: 14
+          architecture: lstm
+          embedding_dimension: 20
         train:
           perform: true
           nrows_train:
@@ -97,8 +97,8 @@ stages:
     params:
       params.yaml:
         model:
-          architecture: rnn
-          embedding_dimension: 14
+          architecture: lstm
+          embedding_dimension: 20
         train:
           perform: true
           nrows_train:

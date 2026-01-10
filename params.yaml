@@ -15,7 +15,7 @@ featurize:
 
 mlflow:
   perform: true
-  experiment_name: 1-RNN
+  experiment_name: 1-LSTM
   tracking_uri: http://localhost:5000
 
 train:
@@ -26,8 +26,8 @@ train:
   test_size: 0.4
 
 model:
-  architecture: rnn
-  embedding_dimension: 14
+  architecture: lstm
+  embedding_dimension: 20
 
 registry:
   debug: true
